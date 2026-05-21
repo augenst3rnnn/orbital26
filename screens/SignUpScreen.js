@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,15 +7,18 @@ import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import { useNavigation } from "@react-navigation/native";
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { createUserProfile } from '../config/firestoreService';
 
 export default function SignUpScreen() {
     const navigation = useNavigation();
-    const [email, setEmail] =useState('');
-    const [password, setPassword] =useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [fullName, setFullName] = useState('');
     const handleSubmit = async()=>{
-        if (email && password) {
+        if (email && password && fullName) {
             try{
-                await createUserWithEmailAndPassword(auth, email, password);
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await createUserProfile(userCredential.user.uid, { email, displayName: fullName });
             }catch(err){
                 console.log('got error: ', err.message);
             }
@@ -48,7 +52,8 @@ export default function SignUpScreen() {
                     <Text className="text-gray-700 ml-4">Full Name</Text>
                     <TextInput
                         className="p-4 bg-gray-100 text-gray-700 rounded-2xl"
-                        value="john tan"
+                        value={fullName}
+                        onChangeText={value => setFullName(value)}
                         placeholder="Enter your Full Name"
                     />
 
