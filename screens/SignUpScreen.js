@@ -25,7 +25,7 @@ export default function SignUpScreen() {
         }
     }
     return (
-        <View className="flex-1 bg-white" style={{ backgroundColor: "#9965faff" }}>
+        <View className="flex-1 bg-white" style={{ backgroundColor: "#F6F0C9" }}>
             <SafeAreaView className="flex">
                 <View className="flex-row justify-start">
                     <TouchableOpacity
