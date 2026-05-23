@@ -11,6 +11,8 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [ingredients, setIngredients] = useState([]);
+  const [ingredient, setIngredient] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -34,13 +36,26 @@ export default function HomeScreen() {
     await signOut(auth); //go back welcomescreen
   };
 
+  {/*add ingredient func*/}
+  const addIngredient = () => {
+    if (!ingredient.trim()) return;
+    if (ingredients.includes(ingredient.trim())) return; // no duplicates
+    setIngredients([...ingredients, ingredient.trim()]);
+    setIngredient("");
+  };
+
+  {/*remove ingredient func*/}
+  const removeIngredient = (index) => {
+    setIngredients(ingredients.filter((_, i) => i !== index));
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className='flex-1 bg-white'>
         <StatusBar style="dark" />
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: 50}}
+          contentContainerStyle={{paddingBottom: 300}}
           className="space-y-6 pt-2"
         >
         
@@ -51,24 +66,43 @@ export default function HomeScreen() {
         </View>
 
         {/*greetings*/}
-        <View className="mx-4 space-y-2 mb-2">
+        <View className="mx-4 space-y-1">
           <Text style={{fontSize: 20, fontWeight: "bold"}}>Good morning {userData ? userData.displayName : "User"}!</Text>
-          <Text style={{fontSize: 30}} className="font-semibold text-neutral-600 mt-1">What would you like to cook today?</Text>
+          <Text style={{fontSize: 30}} className="font-semibold text-neutral-600">What would you like to cook today?</Text>
         </View>
 
         {/*search bar*/}
         <View className="mx-4 flex-row items-center rounded-full bg-black/5 p-[6px]">
           <TextInput
-            placeholder='Search any recipes'
+            placeholder='Add ingredients'
             placeholderTextColor={'gray'}
-            className="flex-1 text-base mb-1 pl-2"
+            value={ingredient}
+            onChangeText={setIngredient}
+            onSubmitEditing={addIngredient} //press enter on keyboard adds ingredient
+            className="flex-1 text-base mb-2 pl-2"
+            style={{ lineHeight: 24, height: 40 }}
           />
           <View className="bg-white rounded-full p-3">
             <Image source={require('../assets/images/search.png')} style={{height: 20, width: 20}} />
           </View>
         </View>
+
+          {/*Display selected ingredients */}
+          {ingredients.length > 0 && (
+            <View className="px-4 mt-4">
+              <Text className="font-bold mb-2">Your ingredients ({ingredients.length}):</Text>
+              {ingredients.map((item, idx) => (
+                <View key={idx} className="flex-row justify-between items-center bg-gray-100 p-2 rounded-lg mb-1">
+                  <Text>{item}</Text>
+                  <TouchableOpacity onPress={() => removeIngredient(idx)}>
+                    <Text className="text-red-500 font-bold text-lg">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
         </ScrollView>  
-      </View>  
+      </View> 
 
       {loading ? (
         <Text>Loading...</Text>
@@ -81,7 +115,7 @@ export default function HomeScreen() {
         <Text className="text-lg mt-4">No user data found</Text>
       )}
 
-      <TouchableOpacity onPress={handleLogout} className="py-3 bg-yellow-400 rounded-xl">
+      <TouchableOpacity onPress={handleLogout} className="py-3 px-1 w-20 bg-yellow-400 rounded-xl">
         <Text className="text-center font-bold text-lg">
           Logout
         </Text>
