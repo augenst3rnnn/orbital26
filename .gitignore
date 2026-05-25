@@ -40,4 +40,9 @@ yarn-error.*
 /ios
 /android
 
+#for security reasons, ignore env files that may contain sensitive information
+.env 
+.env.local
+node_modules/
+
 

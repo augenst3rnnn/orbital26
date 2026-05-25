@@ -24,6 +24,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "SPOONACULAR_API_KEY": "62e2f670edf14e27a754ed31ec7630f1"
     }
   }
 }
