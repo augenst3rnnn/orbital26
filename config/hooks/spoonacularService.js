@@ -19,7 +19,7 @@ export const searchRecipesByIngredients = async (ingredientsList) => {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const response = await fetch(
-            `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredientsString)}&number=10&apiKey=${SPOONACULAR_API_KEY}`,
+            `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredientsString)}&number=30&apiKey=${SPOONACULAR_API_KEY}`,
             { signal: controller.signal }
         );
 
