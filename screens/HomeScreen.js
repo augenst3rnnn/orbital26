@@ -100,7 +100,7 @@ export default function HomeScreen() {
         </View>
 
         {/*greetings*/}
-        <View className="mx-4 space-y-1">
+        <View className="mx-4 space-y-1 mb-4">
           <Text style={{ fontSize: 20, fontWeight: "bold" }}>
             Good morning {userData ? userData.displayName : "User"}!
           </Text>
@@ -133,21 +133,23 @@ export default function HomeScreen() {
 
         {/*Display selected ingredients */}
         {ingredients.length > 0 && (
-          <View className="px-4 mt-4">
-            <Text className="font-bold mb-2">
+          <View className="px-4 mt-4 mb-3">
+            <Text className="font-bold mb-3">
               Your ingredients ({ingredients.length}):
             </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '8'}}>
             {ingredients.map((item, idx) => (
-              <View
+              <TouchableOpacity
                 key={idx}
-                className="flex-row justify-between items-center bg-gray-100 p-2 rounded-lg mb-1"
+                onPress={() => removeIngredient(idx)}
+                className="bg-gray-100 px-2 py-2 rounded-full"
+                style={{ flexDirection: 'row', alignItems: 'center'}}
               >
-                <Text>{item}</Text>
-                <TouchableOpacity onPress={() => removeIngredient(idx)}>
-                  <Text className="text-red-500 font-bold text-lg">✕</Text>
+                <Text className="text-gray-800">{item}</Text>
+                <Text className="text-red-500 font-bold ml-2">✕</Text>
                 </TouchableOpacity>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
         )}
 
@@ -158,7 +160,7 @@ export default function HomeScreen() {
 
         {recipes.length > 0 && (
           <View className="px-4">
-            <Text className="font-bold text-lg mb-3">
+            <Text className="font-bold text-lg mb-4">
               Recipes for you ({recipes.length}):
             </Text>
             {recipes.map((recipe) => (
