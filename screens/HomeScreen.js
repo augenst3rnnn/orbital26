@@ -15,6 +15,7 @@ import { getUserProfile } from "../config/firestoreService";
 import { useEffect, useState } from "react";
 import { searchRecipesByIngredients } from "../config/hooks/spoonacularService";
 import RecipeCard from "../components/RecipeCard";
+import Categories from "../components/Categories";
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ export default function HomeScreen() {
   const [ingredient, setIngredient] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [recipeLoading, setRecipeLoading] = useState(false);
+  const [selectedDietary, setSelectedDietary] = useState([]);
 
   useEffect(() => {
     if (user) {
@@ -45,6 +47,21 @@ export default function HomeScreen() {
       setRecipes([]);
     }
   }, [ingredients]);
+
+  useEffect(() => {
+    if (ingredients.length > 0) {
+      setRecipeLoading(true);
+      searchRecipesByIngredients(ingredients, selectedDietary)  // Add selectedDietary
+        .then((data) => setRecipes(data))
+          .catch((error) => {
+        console.error("API Error: ", error);
+          setRecipes([]);
+        })
+        .finally(() => setRecipeLoading(false));
+    } else {
+      setRecipes([]);
+    }
+  }, [ingredients, selectedDietary]);
 
   const fetchUserData = async () => {
     try {
@@ -130,6 +147,12 @@ export default function HomeScreen() {
             />
           </View>
         </View>
+
+        {/* Dietary Filters*/}
+        <Categories 
+          onSelectDietary={setSelectedDietary}
+          selectedDietary={selectedDietary}
+        />
 
         {/*Display selected ingredients */}
         {ingredients.length > 0 && (

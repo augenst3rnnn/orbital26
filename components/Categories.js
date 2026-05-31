@@ -26,7 +26,7 @@ export default function Categories({onSelectDietary, selectedDietary}) {
     return (
         <View className="mt-4">
             <Text className="text-gray-700 font-semibold mb-2 px-4">
-                Dietary Preferences:
+                Dietary Preferences
             </Text>
             <ScrollView 
                 horizontal 
