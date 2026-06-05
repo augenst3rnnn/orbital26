@@ -3,11 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 {/*placeholder first*/}
-export default function MealPlannerScreen() {
+
+export default function GroceryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1 justify-center items-center">
-        <Text className="text-xl font-semibold text-gray-800">Meal Planner</Text>
+        <Text className="text-xl font-semibold text-gray-800">Grocery List</Text>
       </View>
     </SafeAreaView>
   );
