@@ -20,13 +20,17 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.soyabae.frontend"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "SPOONACULAR_API_KEY": "62e2f670edf14e27a754ed31ec7630f1"
+      "SPOONACULAR_API_KEY": "62e2f670edf14e27a754ed31ec7630f1",
+      "eas": {
+        "projectId": "edf188d2-5add-44c5-96a0-43a313ed3199"
+      }
     }
   }
 }
