@@ -43,17 +43,17 @@ export default function AppNavigation() {
             <Tab.Navigator
                 screenOptions={({ route }) => ({
                     tabBarIcon: ({ focused, color, size}) => {
-                        let iconName = '';
+                        let iconImage = '';
                         if (route.name == 'Home') {
-                            iconName = <Image source={require('../assets/images/explore.png')} style={{ width: size, height: size, tintColor: color }} />;
+                            iconImage = <Image source={require('../assets/images/explore.png')} style={{ width: size, height: size, tintColor: color }} />;
                         } else if (route.name === 'Grocery') {
-                            iconName = <Image source={require('../assets/images/grocery.png')} style={{ width: size, height: size, tintColor: color }} />;
+                            iconImage = <Image source={require('../assets/images/grocery.png')} style={{ width: size, height: size, tintColor: color }} />;
                         } else if (route.name === 'Planner') {
-                            iconName = <Image source={require('../assets/images/planner.png')} style={{ width: size, height: size, tintColor: color }} />;
+                            iconImage = <Image source={require('../assets/images/planner.png')} style={{ width: size, height: size, tintColor: color }} />;
                         } else if (route.name === 'Profile') {
-                            iconName = <Image source={require('../assets/images/profile.png')} style={{ width: size, height: size, tintColor: color }} />;
+                            iconImage = <Image source={require('../assets/images/profile.png')} style={{ width: size, height: size, tintColor: color }} />;
                         }
-                        return <Text style={{ fontSize: size, color }}>{iconName}</Text>;
+                        return iconImage;
                     },
                     tabBarActiveTintColor: '#eab308',
                     tabBarInactiveTintColor: 'gray',
