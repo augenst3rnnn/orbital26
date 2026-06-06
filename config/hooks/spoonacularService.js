@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { matchesDietaryPreferences } from "../dietaryFilters";
 
 const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
 
