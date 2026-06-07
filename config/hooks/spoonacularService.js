@@ -4,10 +4,13 @@ import { matchesDietaryPreferences } from "../dietaryFilters";
 const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
 
 if (!SPOONACULAR_API_KEY) {
-  console.error('Spoonacular API key not found in app.json');
+  console.error("Spoonacular API key not found in app.json");
 }
 
-export const searchRecipesByIngredients = async (ingredientsList, dietaryPreferences = []) => {
+export const searchRecipesByIngredients = async (
+  ingredientsList,
+  dietaryPreferences = [],
+) => {
   try {
     if (!ingredientsList || ingredientsList.length === 0) {
       return [];
@@ -20,7 +23,7 @@ export const searchRecipesByIngredients = async (ingredientsList, dietaryPrefere
 
     const response = await fetch(
       `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredientsString)}&number=30&apiKey=${SPOONACULAR_API_KEY}`,
-      { signal: controller.signal }
+      { signal: controller.signal },
     );
 
     clearTimeout(timeoutId);
@@ -41,11 +44,11 @@ export const searchRecipesByIngredients = async (ingredientsList, dietaryPrefere
     }
 
     //for each recipe, get full ingredient list to check dietary compliance
-    const recipeIds = recipes.map(r => r.id).join(',');
+    const recipeIds = recipes.map((r) => r.id).join(",");
 
     const detailsResponse = await fetch(
       `https://api.spoonacular.com/recipes/informationBulk?ids=${recipeIds}&apiKey=${SPOONACULAR_API_KEY}`,
-      { signal: controller.signal }
+      { signal: controller.signal },
     );
 
     if (!detailsResponse.ok) {
@@ -58,18 +61,21 @@ export const searchRecipesByIngredients = async (ingredientsList, dietaryPrefere
 
     //create a map of recipe ID to ingredients
     const ingredientsMap = {};
-    recipesDetails.forEach(detail => {
+    recipesDetails.forEach((detail) => {
       ingredientsMap[detail.id] = detail.extendedIngredients || [];
     });
 
     //filter recipes by dietary preferences
-    const filteredRecipes = recipes.filter(recipe => {
+    const filteredRecipes = recipes.filter((recipe) => {
       const recipeIngredients = ingredientsMap[recipe.id] || [];
-      return matchesDietaryPreferences(recipe.title, recipeIngredients, dietaryPreferences);
+      return matchesDietaryPreferences(
+        recipe.title,
+        recipeIngredients,
+        dietaryPreferences,
+      );
     });
 
     return filteredRecipes;
-
   } catch (error) {
     console.error("Error searching recipes by ingredients:", error);
     throw error;
