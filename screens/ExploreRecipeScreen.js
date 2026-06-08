@@ -10,9 +10,10 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { mockRecipes } from "../config/mockData";
+import { mockRecipes } from "../data/mockRecipes";
 import { FlatList } from "react-native-gesture-handler";
 
+/*
 export default function ExploreRecipeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
@@ -49,7 +50,7 @@ export default function ExploreRecipeScreen() {
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
 
-      {/*Search bar*/}
+      //Search bar
       <FlatList
         data={filteredRecipes}
         keyExtractor={(item) => item.id.toString()}
@@ -102,6 +103,20 @@ export default function ExploreRecipeScreen() {
           </View>
         }
       />
+    </SafeAreaView>
+  );
+} */
+
+//placeholder first
+
+export default function ExploreRecipeScreen() {
+  return (
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-xl font-semibold text-gray-800">
+          Explore Recipes
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }
