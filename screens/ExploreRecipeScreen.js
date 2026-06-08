@@ -8,12 +8,11 @@ import {
   ScrollView,
   TextInput,
   Pressable,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockRecipes } from "../data/mockRecipes";
-import { FlatList } from "react-native-gesture-handler";
 
-/*
 export default function ExploreRecipeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
@@ -31,11 +30,7 @@ export default function ExploreRecipeScreen() {
   const renderRecipeCard = ({ item }) => {
     return (
       <TouchableOpacity className="bg-white rounded-lg shadow-md p-4 mb-4">
-        <Image
-          source={{ uri: item.image }}
-          className="w-full h-44"
-          resizeMode="cover"
-        />
+        <Image source={item.image} className="w-full h-44" resizeMode="cover" />
         <View className="mt-2">
           <Text className="text-lg font-semibold">{item.title}</Text>
           <Text className="text-sm text-gray-500">
@@ -50,7 +45,7 @@ export default function ExploreRecipeScreen() {
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
 
-      //Search bar
+      {/* Search bar */}
       <FlatList
         data={filteredRecipes}
         keyExtractor={(item) => item.id.toString()}
@@ -84,9 +79,7 @@ export default function ExploreRecipeScreen() {
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() => setSelectedType(item)}
-                  className={
-                    'mr-3 px-5 py-3 rounded-2xl ${selectedType === item ? "bg-orange-400" : "bg-white"}'
-                  }
+                  className={`mr-3 px-5 py-3 rounded-2xl ${selectedType === item ? "bg-orange-400" : "bg-white"}`}
                 >
                   <Text
                     className={
@@ -105,8 +98,9 @@ export default function ExploreRecipeScreen() {
       />
     </SafeAreaView>
   );
-} */
+}
 
+/*
 //placeholder first
 
 export default function ExploreRecipeScreen() {
@@ -120,3 +114,4 @@ export default function ExploreRecipeScreen() {
     </SafeAreaView>
   );
 }
+  */

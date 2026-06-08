@@ -64,35 +64,35 @@ export default function AppNavigation() {
             if (route.name == "Home") {
               iconImage = (
                 <Image
-                  source={require("../assets/images/home.png")}
+                  source={require("../assets/icons/home.png")}
                   style={{ width: size, height: size, tintColor: color }}
                 />
               );
             } else if (route.name === "Grocery") {
               iconImage = (
                 <Image
-                  source={require("../assets/images/grocery.png")}
+                  source={require("../assets/icons/grocery.png")}
                   style={{ width: size, height: size, tintColor: color }}
                 />
               );
             } else if (route.name === "Planner") {
               iconImage = (
                 <Image
-                  source={require("../assets/images/planner.png")}
+                  source={require("../assets/icons/planner.png")}
                   style={{ width: size, height: size, tintColor: color }}
                 />
               );
             } else if (route.name === "Profile") {
               iconImage = (
                 <Image
-                  source={require("../assets/images/profile.png")}
+                  source={require("../assets/icons/profile.png")}
                   style={{ width: size, height: size, tintColor: color }}
                 />
               );
             } else if (route.name === "Explore") {
               iconImage = (
                 <Image
-                  source={require("../assets/images/explore.png")}
+                  source={require("../assets/icons/explore.png")}
                   style={{ width: size, height: size, tintColor: color }}
                 />
               );

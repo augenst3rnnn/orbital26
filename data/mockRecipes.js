@@ -6,7 +6,7 @@ export const mockRecipes = [
     id: 1,
     title: "Chicken Pasta",
     type: "main course",
-    image: "https://spoonacular.com/recipeImages/716429-312x231.jpg",
+    image: require("../assets/mockImages/chickenPasta.jpeg"),
 
     usedIngredientCount: 4,
     missedIngredientCount: 2,
@@ -30,7 +30,7 @@ export const mockRecipes = [
     id: 2,
     title: "Vegetable Stir Fry",
     type: "main course",
-    image: "https://spoonacular.com/recipeImages/715538-312x231.jpg",
+    image: require("../assets/mockImages/vegetableStirFry.jpeg"),
 
     usedIngredientCount: 3,
     missedIngredientCount: 1,
@@ -53,8 +53,7 @@ export const mockRecipes = [
     id: 3,
     title: "Pancakes",
     type: "breakfast",
-    image: "https://spoonacular.com/recipeImages/715495-312x231.jpg",
-
+    image: require("../assets/mockImages/pancakes.jpeg"),
     usedIngredientCount: 2,
     missedIngredientCount: 0,
 
@@ -77,7 +76,7 @@ export const mockRecipes = [
     id: 4,
     title: "Overnight Oats",
     type: "breakfast",
-    image: "https://spoonacular.com/recipeImages/715497-312x231.jpg",
+    image: require("../assets/mockImages/overnightOats.jpeg"),
 
     usedIngredientCount: 3,
     missedIngredientCount: 1,
@@ -100,7 +99,7 @@ export const mockRecipes = [
     id: 5,
     title: "Hummus with Veggies:",
     type: "snack",
-    image: "https://spoonacular.com/recipeImages/715426-312x231.jpg",
+    image: require("../assets/mockImages/hummusWithVeggies.jpeg"),
 
     usedIngredientCount: 2,
     missedIngredientCount: 0,
@@ -123,7 +122,7 @@ export const mockRecipes = [
     id: 6,
     title: "Fruit Salad",
     type: "snack",
-    image: "https://spoonacular.com/recipeImages/715415-312x231.jpg",
+    image: require("../assets/mockImages/fruitSalad.jpeg"),
 
     usedIngredientCount: 4,
     missedIngredientCount: 0,
@@ -146,8 +145,7 @@ export const mockRecipes = [
     id: 7,
     title: "Chocolate Chip Cookies",
     type: "dessert",
-    image: "https://spoonacular.com/recipeImages/715495-312x231.jpg",
-
+    image: require("../assets/mockImages/chocolateChipCookies.jpeg"),
     usedIngredientCount: 3,
     missedIngredientCount: 1,
 
@@ -174,7 +172,7 @@ export const mockRecipes = [
     id: 8,
     title: "Lemon Bars",
     type: "dessert",
-    image: "https://spoonacular.com/recipeImages/715497-312x231.jpg",
+    image: require("../assets/mockImages/lemonBars.jpeg"),
 
     usedIngredientCount: 4,
     missedIngredientCount: 0,

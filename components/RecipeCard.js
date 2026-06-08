@@ -39,7 +39,10 @@ export default function RecipeCard({ recipe, onPress }) {
             </View>
 
             <View className="items-center">
-              <Image source={require("../assets/images/heart.png")} style={{ width: 20, height: 20 }} /> 
+              <Image
+                source={require("../assets/icons/heart.png")}
+                style={{ width: 20, height: 20 }}
+              />
               <Text className="text-sm font-semibold">{recipe.likes}</Text>
             </View>
           </View>
