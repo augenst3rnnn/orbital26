@@ -13,8 +13,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockRecipes } from "../data/mockRecipes";
+import RecipeModal from "../components/RecipeModal";
 
-export default function ExploreRecipeScreen() {
+export default function ExploreRecipeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedRecipe, setSelectedRecipe] = useState(null);
@@ -37,6 +38,7 @@ export default function ExploreRecipeScreen() {
         onPress={() => {
           setSelectedRecipe(item);
           setModalVisible(true);
+          console.log("Selected recipe: ", item.title);
         }}
       >
         <Image source={item.image} className="w-full h-44" resizeMode="cover" />
@@ -106,31 +108,15 @@ export default function ExploreRecipeScreen() {
         }
       />
 
-      <Modal visible={modalVisible} transparent={true} animationType="fade">
-        <View className="flex-1 bg-gray-200 bg-opacity-10 p-10 justify-center items-center">
-          <View className="bg-white rounded-3xl p-10 w-full w-11/12 shadow-lg">
-            <Image
-              source={selectedRecipe?.image}
-              className="w-full h-64 rounded-lg pb-2"
-              resizeMode="cover"
-            />
-            <Text className="text-2xl font-bold">{selectedRecipe?.title}</Text>
-            <Text className="text-sm text-gray-500 mb-4">
-              {selectedRecipe?.summary}
-            </Text>
-            <View className="bg-yellow-300 rounded-lg p-4 mb-4">
-              <Text className="text-lg font-semibold mb-2">ingredients</Text>
-              <Text className="text-gray-700 mb-4">
-                {selectedRecipe?.usedIngredientCount} available,{" "}
-                {selectedRecipe?.missedIngredientCount} missing
-              </Text>
-            </View>
-            <Pressable onPress={() => setModalVisible(false)}>
-              <Text className="underline">Close</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <RecipeModal
+        visible={modalVisible}
+        recipe={selectedRecipe}
+        onClose={() => setModalVisible(false)}
+        onReadMore={() => {
+          setModalVisible(false);
+          navigation.navigate("RecipeDetails", { recipe: selectedRecipe });
+        }}
+      />
     </SafeAreaView>
   );
 }

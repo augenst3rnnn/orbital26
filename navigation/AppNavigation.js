@@ -13,6 +13,7 @@ import GroceryScreen from "../screens/GroceryScreen";
 import MealPlannerScreen from "../screens/MealPlanner";
 import ProfileScreen from "../screens/ProfileScreen";
 import ExploreRecipeScreen from "../screens/ExploreRecipeScreen";
+import RecipeDetailsScreen from "../screens/RecipeDetailsScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -27,6 +28,11 @@ export default function AppNavigation() {
             name="bottomTabs"
             options={{ headerShown: false }}
             component={BottomTabs}
+          />
+          <Stack.Screen
+            name="RecipeDetails"
+            options={{ headerShown: false }}
+            component={RecipeDetailsScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
