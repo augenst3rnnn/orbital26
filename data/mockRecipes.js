@@ -8,6 +8,13 @@ export const mockRecipes = [
     type: "main course",
     image: require("../assets/mockImages/chickenPasta.jpeg"),
 
+    ingredients: [
+      "200g chicken breast",
+      "200g pasta",
+      "1 cup heavy cream",
+      "2 cloves garlic",
+      "1/2 cup grated Parmesan cheese",
+    ],
     usedIngredientCount: 4,
     missedIngredientCount: 2,
 
@@ -32,6 +39,13 @@ export const mockRecipes = [
     type: "main course",
     image: require("../assets/mockImages/vegetableStirFry.jpeg"),
 
+    ingredients: [
+      "1 cup broccoli florets",
+      "1 cup sliced bell peppers",
+      "1 cup sliced carrots",
+      "2 tablespoons soy sauce",
+      "1 tablespoon vegetable oil",
+    ],
     usedIngredientCount: 3,
     missedIngredientCount: 1,
 
@@ -54,6 +68,15 @@ export const mockRecipes = [
     title: "Pancakes",
     type: "breakfast",
     image: require("../assets/mockImages/pancakes.jpeg"),
+    ingredients: [
+      "1 cup all-purpose flour",
+      "2 tablespoons sugar",
+      "2 teaspoons baking powder",
+      "1/2 teaspoon salt",
+      "1 cup milk",
+      "2 large eggs",
+      "1/4 cup melted butter",
+    ],
     usedIngredientCount: 2,
     missedIngredientCount: 0,
 
@@ -78,6 +101,13 @@ export const mockRecipes = [
     type: "breakfast",
     image: require("../assets/mockImages/overnightOats.jpeg"),
 
+    ingredients: [
+      "1/2 cup old-fashioned oats",
+      "2/3 cup milk of choice",
+      "1/4 cup greek yogurt",
+      "1 tablespoon chia seeds",
+      "1 tablespoon honey",
+    ],
     usedIngredientCount: 3,
     missedIngredientCount: 1,
 
@@ -101,6 +131,15 @@ export const mockRecipes = [
     type: "snack",
     image: require("../assets/mockImages/hummusWithVeggies.jpeg"),
 
+    ingredients: [
+      "1 can chickpeas",
+      "1/2 cup sesame paste",
+      "2 tablespoons olive oil",
+      "2 tablespoons lemon juice",
+      "2 cloves garlic, minced",
+      "1/2 teaspoon salt",
+      "diced vegetables",
+    ],
     usedIngredientCount: 2,
     missedIngredientCount: 0,
 
@@ -124,6 +163,13 @@ export const mockRecipes = [
     type: "snack",
     image: require("../assets/mockImages/fruitSalad.jpeg"),
 
+    ingredients: [
+      "1 cup pineapples",
+      "1 cup strawberries",
+      "2 kiwis",
+      "1 cup seedless grapes",
+      "1 cup blueberries",
+    ],
     usedIngredientCount: 4,
     missedIngredientCount: 0,
 
@@ -146,6 +192,17 @@ export const mockRecipes = [
     title: "Chocolate Chip Cookies",
     type: "dessert",
     image: require("../assets/mockImages/chocolateChipCookies.jpeg"),
+
+    ingredients: [
+      "1 cup butter",
+      "3/4 cup granulated white sugar",
+      "2 large eggs",
+      "2 teaspoons pure vanilla extract",
+      "2 cups all-purpose flour",
+      "1 teaspoon baking soda",
+      "1/2 teaspoon salt",
+      "2 cups chocolate chips",
+    ],
     usedIngredientCount: 3,
     missedIngredientCount: 1,
 
@@ -174,6 +231,16 @@ export const mockRecipes = [
     type: "dessert",
     image: require("../assets/mockImages/lemonBars.jpeg"),
 
+    ingredients: [
+      "1 cup all-purpose flour",
+      "1/2 cup powdered sugar",
+      "1/4 teaspoon salt",
+      "1/2 cup cold unsalted butter, cubed",
+      "2 large eggs",
+      "1 cup granulated sugar",
+      "2 tablespoons all-purpose flour",
+      "1/4 cup fresh lemon juice",
+    ],
     usedIngredientCount: 4,
     missedIngredientCount: 0,
 
