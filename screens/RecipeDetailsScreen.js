@@ -8,9 +8,9 @@ import {
 export default function RecipeDetailsScreen({ route, navigation }) {
   return (
     <ScrollView
-      className="flex-1 bg-white rounded-lg"
+      className="flex-1 bg-white rounded-lg p-1"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ padding: 2 }}
+      contentContainerStyle={{ padding: 2, paddingBottom: 100 }}
     >
       <View className="flex-row justify-center">
         <Image
@@ -83,7 +83,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
 
         {route.params.recipe.instructions.map((instruction, index) => (
           <Text key={index} className="text-gray-700 mb-2 ml-5">
-            • {instruction}
+            {index + 1}. {instruction}
           </Text>
         ))}
       </View>
