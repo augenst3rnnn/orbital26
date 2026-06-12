@@ -117,5 +117,33 @@ export const fetchRecipeNutrition = async (recipeId) => {
     }
 
     const data = await response.json();
+
+  const nutrition = {
+      // Find nutrient object where name === "Calories", then get its amount
+      calories:
+        data.nutrition?.nutrients?.find((n) => n.name === "Calories")?.amount ||
+        0,
+      protein:
+        data.nutrition?.nutrients?.find((n) => n.name === "Protein")?.amount || 0,
+      carbs:
+        data.nutrition?.nutrients?.find((n) => n.name === "Carbohydrates")?.amount ||
+        0,
+      fat: data.nutrition?.nutrients?.find((n) => n.name === "Fat")?.amount || 0,
+      fiber:
+        data.nutrition?.nutrients?.find((n) => n.name === "Fiber")?.amount || 0,
+      healthScore: data.healthScore || 0, // Spoonacular's built-in health score (0-100)
+    };
+
+    const cacheEntry = {
+      data: nutrition, // The actual nutrition data
+      timestamp: Date.now(), // When it was cached (for expiry check)
+    };
+    await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
+    console.log(`Cached nutrition for recipe ${recipeId}`);
+
+    return nutrition; // Return fresh data
+  } catch (error) {
+    console.error("Error fetching recipe nutrition:", error);
+    throw error; // Re-throw so caller can handle it
+  }
 };
-}
