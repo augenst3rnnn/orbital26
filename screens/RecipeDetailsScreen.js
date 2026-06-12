@@ -4,6 +4,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import NutritionSection from '../components/NutritionSection';
 
 export default function RecipeDetailsScreen({ route, navigation }) {
   return (
@@ -64,6 +65,9 @@ export default function RecipeDetailsScreen({ route, navigation }) {
       <Text className="text-gray-700 mt-2 ml-5">
         {route.params.recipe.summary}
       </Text>
+
+      {/* nutrition section */}
+      <NutritionSection recipeId={route.params.recipe.id} />
 
       <View className="items-center my-5">
         <View className="my-3 border-b border-gray-300 w-64" />
