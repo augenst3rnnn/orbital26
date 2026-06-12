@@ -1,6 +1,7 @@
 import Constants from "expo-constants";
 import { matchesDietaryPreferences } from "../dietaryFilters";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mockRecipes } from '../../mockRecipes'; 
 
 const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
 
@@ -88,13 +89,23 @@ export const fetchRecipeNutrition = async (recipeId) => {
     if (!recipeId) {
       throw new Error("Recipe ID is required to fetch nutrition information");
     }
-
+    //check if this is a mock recipe
+    if (recipeId <= 8) {
+      const mockRecipe = mockRecipes.find(r => r.id === recipeId);
+      if (mockRecipe && mockRecipe.nutrition) {
+        console.log(`Using mock nutrition for recipe ${recipeId}`);
+        return mockRecipe.nutrition;
+      }
+    }
+    //else proceed with real API call
     const cacheKey = `nutrition_${recipeId}`;
     const cachedData = await AsyncStorage.getItem(cacheKey);
+    
     if (cachedData) {
-      return JSON.parse(cachedData);
+      const parsed = JSON.parse(cachedData);
       const cacheAge = Date.now() - parsed.timestamp;
       const twentyFourHours = 24 * 60 * 60 * 1000;
+      
       if (cacheAge < twentyFourHours) {
         console.log(`Using cached nutrition for recipe ${recipeId}`);
         return parsed.data;
@@ -102,6 +113,7 @@ export const fetchRecipeNutrition = async (recipeId) => {
         console.log(`Cache expired for recipe ${recipeId}`);
       }
     }
+    
     console.log(`Fetching nutrition for recipe ${recipeId} from API`);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -112,38 +124,33 @@ export const fetchRecipeNutrition = async (recipeId) => {
     );
 
     clearTimeout(timeoutId);
+    
     if (!response.ok) {
       throw new Error(`Error fetching nutrition: ${response.statusText}`);
     }
 
     const data = await response.json();
 
-  const nutrition = {
-      // Find nutrient object where name === "Calories", then get its amount
-      calories:
-        data.nutrition?.nutrients?.find((n) => n.name === "Calories")?.amount ||
-        0,
-      protein:
-        data.nutrition?.nutrients?.find((n) => n.name === "Protein")?.amount || 0,
-      carbs:
-        data.nutrition?.nutrients?.find((n) => n.name === "Carbohydrates")?.amount ||
-        0,
+    const nutrition = {
+      calories: data.nutrition?.nutrients?.find((n) => n.name === "Calories")?.amount || 0,
+      protein: data.nutrition?.nutrients?.find((n) => n.name === "Protein")?.amount || 0,
+      carbs: data.nutrition?.nutrients?.find((n) => n.name === "Carbohydrates")?.amount || 0,
       fat: data.nutrition?.nutrients?.find((n) => n.name === "Fat")?.amount || 0,
-      fiber:
-        data.nutrition?.nutrients?.find((n) => n.name === "Fiber")?.amount || 0,
-      healthScore: data.healthScore || 0, // Spoonacular's built-in health score (0-100)
+      fiber: data.nutrition?.nutrients?.find((n) => n.name === "Fiber")?.amount || 0,
+      healthScore: data.healthScore || 0,
     };
 
     const cacheEntry = {
-      data: nutrition, // The actual nutrition data
-      timestamp: Date.now(), // When it was cached (for expiry check)
+      data: nutrition,
+      timestamp: Date.now(),
     };
+    
     await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
     console.log(`Cached nutrition for recipe ${recipeId}`);
 
-    return nutrition; // Return fresh data
+    return nutrition;
   } catch (error) {
     console.error("Error fetching recipe nutrition:", error);
-    throw error; // Re-throw so caller can handle it
+    throw error;
   }
 };

@@ -18,10 +18,10 @@ export default function RecipeDetailsScreen({ route, navigation }) {
           source={route.params.recipe.image}
           style={{
             width: wp(98),
-            height: hp(40),
-            borderTopLeftRadius: 60,
-            borderTopRightRadius: 60,
-            marginTop: 2,
+            height: hp(45),
+            borderTopLeftRadius: 40,
+            borderTopRightRadius: 40,
+            marginTop: 1,
           }}
         />
       </View>
