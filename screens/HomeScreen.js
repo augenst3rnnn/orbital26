@@ -51,10 +51,10 @@ export default function HomeScreen() {
   useEffect(() => {
     if (ingredients.length > 0) {
       setRecipeLoading(true);
-      searchRecipesByIngredients(ingredients, selectedDietary)  // Add selectedDietary
+      searchRecipesByIngredients(ingredients, selectedDietary) // Add selectedDietary
         .then((data) => setRecipes(data))
-          .catch((error) => {
-        console.error("API Error: ", error);
+        .catch((error) => {
+          console.error("API Error: ", error);
           setRecipes([]);
         })
         .finally(() => setRecipeLoading(false));
@@ -107,11 +107,11 @@ export default function HomeScreen() {
         {/*avatar and bell icon*/}
         <View className="px-4 flex-row justify-between items-center mb-2">
           <Image
-            source={require("../assets/images/avatar.png")}
+            source={require("../assets/icons/avatar.png")}
             style={{ height: 50, width: 50 }}
           />
           <Image
-            source={require("../assets/images/bell.png")}
+            source={require("../assets/icons/bell.png")}
             style={{ height: 30, width: 30 }}
           />
         </View>
@@ -142,14 +142,14 @@ export default function HomeScreen() {
           />
           <View className="bg-white rounded-full p-3">
             <Image
-              source={require("../assets/images/search.png")}
+              source={require("../assets/icons/search.png")}
               style={{ height: 20, width: 20 }}
             />
           </View>
         </View>
 
         {/* Dietary Filters*/}
-        <Categories 
+        <Categories
           onSelectDietary={setSelectedDietary}
           selectedDietary={selectedDietary}
         />
@@ -160,16 +160,16 @@ export default function HomeScreen() {
             <Text className="font-bold mb-3">
               Your ingredients ({ingredients.length}):
             </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: '8'}}>
-            {ingredients.map((item, idx) => (
-              <TouchableOpacity
-                key={idx}
-                onPress={() => removeIngredient(idx)}
-                className="bg-gray-100 px-2 py-2 rounded-full"
-                style={{ flexDirection: 'row', alignItems: 'center'}}
-              >
-                <Text className="text-gray-800">{item}</Text>
-                <Text className="text-red-500 font-bold ml-2">✕</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: "8" }}>
+              {ingredients.map((item, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => removeIngredient(idx)}
+                  className="bg-gray-100 px-2 py-2 rounded-full"
+                  style={{ flexDirection: "row", alignItems: "center" }}
+                >
+                  <Text className="text-gray-800">{item}</Text>
+                  <Text className="text-red-500 font-bold ml-2">✕</Text>
                 </TouchableOpacity>
               ))}
             </View>
