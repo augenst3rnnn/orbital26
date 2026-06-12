@@ -33,7 +33,10 @@ export default function RecipeDetailsScreen({ route, navigation }) {
             {route.params.recipe.title}
           </Text>
           <Text className="text-gray-500 font-bold mt-2 mr-5">
-            ❤️ {route.params.recipe.likes}
+            <Image
+                source={require("../assets/icons/heart.png")}
+                style={{ width: 20, height: 14 }}
+              /> {route.params.recipe.likes}
           </Text>
         </View>
       </View>
@@ -42,12 +45,16 @@ export default function RecipeDetailsScreen({ route, navigation }) {
       <View className="flex-row justify-start items-center -mt-2 ml-5">
         <View className="bg-gray-100 border border-gray-300 rounded-lg px-2 py-2 mr-2">
           <Text className="text-gray-600">
-            ⏱ {route.params.recipe.readyInMinutes} mins
+            <Image source={require("../assets/icons/timer.png")}
+              style={{ width: 20, height: 20 }}
+            /> {route.params.recipe.readyInMinutes} mins
           </Text>
         </View>
         <View className="bg-gray-100 border border-gray-300 rounded-lg px-2 py-2 mr-2">
           <Text className="text-gray-600">
-            🍽 {route.params.recipe.servings} servings
+            <Image source={require("../assets/icons/servings.png")}
+              style={{ width: 20, height: 20 }}
+            /> {route.params.recipe.servings} servings
           </Text>
         </View>
       </View>

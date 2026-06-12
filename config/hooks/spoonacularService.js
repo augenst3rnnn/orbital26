@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import { matchesDietaryPreferences } from "../dietaryFilters";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
 
@@ -81,3 +82,40 @@ export const searchRecipesByIngredients = async (
     throw error;
   }
 };
+
+export const fetchRecipeNutrition = async (recipeId) => {
+  try {
+    if (!recipeId) {
+      throw new Error("Recipe ID is required to fetch nutrition information");
+    }
+
+    const cacheKey = `nutrition_${recipeId}`;
+    const cachedData = await AsyncStorage.getItem(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+      const cacheAge = Date.now() - parsed.timestamp;
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      if (cacheAge < twentyFourHours) {
+        console.log(`Using cached nutrition for recipe ${recipeId}`);
+        return parsed.data;
+      } else {
+        console.log(`Cache expired for recipe ${recipeId}`);
+      }
+    }
+    console.log(`Fetching nutrition for recipe ${recipeId} from API`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(
+      `https://api.spoonacular.com/recipes/${recipeId}/information?includeNutrition=true&apiKey=${SPOONACULAR_API_KEY}`,
+      { signal: controller.signal }
+    );
+
+    clearTimeout(timeoutId);
+    if (!response.ok) {
+      throw new Error(`Error fetching nutrition: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+};
+}
