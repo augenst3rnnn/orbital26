@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator, Image} from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { fetchRecipeNutrition } from '../config/hooks/spoonacularService';
 
@@ -57,13 +57,19 @@ const NutritionSection = ({ recipeId }) => {
       {/* Display Nutrition Data */}
       {!loading && !error && nutrition && (
         <View className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          
-          {/* Header*/}
           <View className="p-4 bg-gray-50 border-b border-gray-100">
-            <Text className="text-base font-semibold text-gray-800">📊 Nutrition Facts</Text>
+            <View className="flex-row items-center gap-2">
+              <Image
+                source={require('../assets/icons/nutritionfacts.png')}
+                style={{ width: 20, height: 20 }}
+              />
+              <Text className="text-base font-semibold text-gray-800">
+                Nutrition Facts
+              </Text>
+            </View>
           </View>
 
-            {/* Health Score Pill */}
+          {/* Health Score Pill */}
             <View className="items-center py-3 bg-white border-b border-gray-100">
               <View
                 className="px-4 py-2 rounded-full"
@@ -79,8 +85,10 @@ const NutritionSection = ({ recipeId }) => {
             </View>
 
             {/* Calories */}
-          <View className="items-center py-5 bg-white border-b border-gray-100">
-            <Text className="text-sm text-gray-500 mb-1">🍽️ Energy</Text>
+          <View className="items-center py-7 bg-white border-b border-gray-100">
+            <View className="flex-row items-center justify-center w-full mb-1">
+              <Text className="text-sm text-gray-500">Energy</Text>
+            </View>
             <Text className="text-4xl font-bold text-gray-800">
               {Math.round(nutrition.calories)}
             </Text>
@@ -96,7 +104,9 @@ const NutritionSection = ({ recipeId }) => {
               {/* Protein Card */}
               <View className="w-[48%] bg-blue-50 rounded-xl p-3 mb-3 border border-blue-100">
                 <View className="flex-row justify-between items-start mb-2">
-                  <Text className="text-2xl">💪</Text>
+                  <Image source={require('../assets/icons/protein.png')}
+                    style={{ width: 20, height: 16, marginRight: 6 }}
+                  />
                   <View className="bg-blue-100 px-2 py-0.5 rounded-full">
                     <Text className="text-xs font-semibold text-blue-700">Protein</Text>
                   </View>
@@ -110,7 +120,9 @@ const NutritionSection = ({ recipeId }) => {
               {/* Carbs Card */}
               <View className="w-[48%] bg-orange-50 rounded-xl p-3 mb-3 border border-orange-100">
                 <View className="flex-row justify-between items-start mb-2">
-                  <Text className="text-2xl">🌾</Text>
+                  <Image source={require('../assets/icons/carbs.png')}
+                    style={{ width: 20, height: 16, marginRight: 6 }}
+                  />
                   <View className="bg-orange-100 px-2 py-0.5 rounded-full">
                     <Text className="text-xs font-semibold text-orange-700">Carbs</Text>
                   </View>
@@ -124,9 +136,11 @@ const NutritionSection = ({ recipeId }) => {
               {/* Fat Card */}
               <View className="w-[48%] bg-green-50 rounded-xl p-3 mb-3 border border-green-100">
                 <View className="flex-row justify-between items-start mb-2">
-                  <Text className="text-2xl">🥑</Text>
+                  <Image source={require('../assets/icons/fat.png')}
+                    style={{ width: 20, height: 16, marginRight: 6 }}
+                  />
                   <View className="bg-green-100 px-2 py-0.5 rounded-full">
-                    <Text className="text-xs font-semibold text-green-700">Fat</Text>
+                    <Text className="text-xs font-semibold text-green-700">Fats</Text>
                   </View>
                 </View>
                 <Text className="text-2xl font-bold text-green-700">
@@ -138,7 +152,9 @@ const NutritionSection = ({ recipeId }) => {
               {/* Fiber Card */}
               <View className="w-[48%] bg-purple-50 rounded-xl p-3 mb-3 border border-purple-100">
                 <View className="flex-row justify-between items-start mb-2">
-                  <Text className="text-2xl">🌿</Text>
+                  <Image source={require('../assets/icons/fiber.png')}
+                    style={{ width: 20, height: 20, marginRight: 6 }}
+                  />
                   <View className="bg-purple-100 px-2 py-0.5 rounded-full">
                     <Text className="text-xs font-semibold text-purple-700">Fiber</Text>
                   </View>

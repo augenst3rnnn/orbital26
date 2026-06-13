@@ -1,7 +1,7 @@
 import Constants from "expo-constants";
 import { matchesDietaryPreferences } from "../dietaryFilters";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { mockRecipes } from '../../mockRecipes'; 
+import { mockRecipes } from '../../data/mockRecipes'; 
 
 const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
 
