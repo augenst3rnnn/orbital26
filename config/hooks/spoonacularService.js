@@ -81,3 +81,30 @@ export const searchRecipesByIngredients = async (
     throw error;
   }
 };
+
+  export const fetchRecipeNutrition = async (recipeId) => {
+  try {
+    if (!recipeId) return null;
+    
+    console.log(`Fetching nutrition for recipe ${recipeId} from API`);
+    const response = await fetch(
+      `https://api.spoonacular.com/recipes/${recipeId}/information?includeNutrition=true&apiKey=${SPOONACULAR_API_KEY}`
+    );
+    
+    if (!response.ok) throw new Error(`Error fetching nutrition: ${response.statusText}`);
+    
+    const data = await response.json();
+    return {
+      calories: data.nutrition?.nutrients?.find((n) => n.name === "Calories")?.amount || 0,
+      protein: data.nutrition?.nutrients?.find((n) => n.name === "Protein")?.amount || 0,
+      carbs: data.nutrition?.nutrients?.find((n) => n.name === "Carbohydrates")?.amount || 0,
+      fat: data.nutrition?.nutrients?.find((n) => n.name === "Fat")?.amount || 0,
+      fiber: data.nutrition?.nutrients?.find((n) => n.name === "Fiber")?.amount || 0,
+      healthScore: data.healthScore || 0,
+    };
+  } catch (error) {
+    console.error("Error fetching recipe nutrition:", error);
+    return null;
+  }
+};
+
