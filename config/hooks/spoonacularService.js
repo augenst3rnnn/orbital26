@@ -52,20 +52,17 @@ export const searchRecipesByIngredients = async (
     );
 
     if (!detailsResponse.ok) {
-      // If details fetch fails, return original recipes (no filtering)
       console.warn("Could not fetch recipe details for filtering");
       return recipes;
     }
 
     const recipesDetails = await detailsResponse.json();
 
-    //create a map of recipe ID to ingredients
     const ingredientsMap = {};
     recipesDetails.forEach((detail) => {
       ingredientsMap[detail.id] = detail.extendedIngredients || [];
     });
 
-    //filter recipes by dietary preferences
     const filteredRecipes = recipes.filter((recipe) => {
       const recipeIngredients = ingredientsMap[recipe.id] || [];
       return matchesDietaryPreferences(
@@ -82,7 +79,7 @@ export const searchRecipesByIngredients = async (
   }
 };
 
-  export const fetchRecipeNutrition = async (recipeId) => {
+export const fetchRecipeNutrition = async (recipeId) => {
   try {
     if (!recipeId) return null;
     
@@ -108,3 +105,62 @@ export const searchRecipesByIngredients = async (
   }
 };
 
+export const getRecipeDetails = async (recipeId) => {
+  try {
+    console.log(`Fetching full details for recipe ${recipeId}`);
+    
+    const response = await fetch(
+      `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${SPOONACULAR_API_KEY}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Error fetching details: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    //extract full ingredients list
+    const extendedIngredients = data.extendedIngredients?.map(ing => ing.original) || [];
+    
+    // extract instructions
+    let instructions = [];
+    if (data.instructions) {
+      // Remove HTML tags
+      const cleanInstructions = data.instructions.replace(/<[^>]*>/g, '');
+      
+      //split by numbers (1., 2., etc.)
+      const regex = /\d+\.\s*/g;
+      const parts = cleanInstructions.split(regex);
+      
+      if (parts.length > 1) {
+        // Remove empty first element and clean up
+        instructions = parts.slice(1).map(step => step.trim());
+      } else if (cleanInstructions.length > 0) {
+        // If no numbered steps, try splitting by periods
+        const sentences = cleanInstructions.split(/\.\s+/);
+        if (sentences.length > 1) {
+          instructions = sentences.filter(s => s.length > 10);
+        } else {
+          instructions = [cleanInstructions];
+        }
+      }
+    }
+    
+    if (instructions.length === 0) {
+      instructions = ["No detailed instructions available."];
+    }
+    
+    console.log(`${instructions.length} instruction steps found`);
+    
+    return {
+      instructions: instructions,
+      extendedIngredients: extendedIngredients,
+    };
+  } catch (error) {
+    console.error("Error fetching recipe details:", error);
+    return {
+      instructions: ["Could not load instructions."],
+      extendedIngredients: [],
+    };
+  }
+};
