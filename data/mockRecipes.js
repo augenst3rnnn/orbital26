@@ -31,6 +31,16 @@ export const mockRecipes = [
       "Mix the cooked chicken and pasta with the sauce.",
       "Serve hot and enjoy!",
     ],
+
+    nutrition: {
+      calories: 650,
+      protein: 35,
+      carbs: 60,
+      fat: 28,
+      fiber: 4,
+      healthScore: 45
+
+    },
   },
 
   {
@@ -61,6 +71,15 @@ export const mockRecipes = [
       "Add soy sauce and garlic for flavor.",
       "Serve over rice or noodles.",
     ],
+
+    nutrition: {
+      calories: 250,
+      protein: 8,
+      carbs: 30,
+      fat: 12,
+      fiber: 6,
+      healthScore: 78
+    }
   },
 
   {
@@ -93,6 +112,15 @@ export const mockRecipes = [
       "Heat a griddle and pour batter to form pancakes.",
       "Cook until bubbles form, then flip and cook until golden.",
     ],
+
+    nutrition: {
+      calories: 350,
+      protein: 10,
+      carbs: 45,
+      fat: 14,
+      fiber: 2,
+      healthScore: 52
+    }
   },
 
   {
@@ -123,6 +151,15 @@ export const mockRecipes = [
       "Stir well, cover, and refrigerate overnight.",
       "In the morning, give it a good stir and enjoy!",
     ],
+
+    nutrition: {
+      calories: 280,
+      protein: 12,
+      carbs: 40,
+      fat: 8,
+      fiber: 7,
+      healthScore: 82
+    }
   },
 
   {
@@ -155,6 +192,15 @@ export const mockRecipes = [
       "Season with salt and pepper to taste.",
       "Serve with sliced vegetables like carrots, cucumbers, and bell peppers.",
     ],
+
+    nutrition: {
+      calories: 114,
+      protein: 3,
+      carbs: 13,
+      fat: 5,
+      fiber: 1,
+      healthScore: 68
+    }
   },
 
   {
@@ -185,6 +231,15 @@ export const mockRecipes = [
       "Drizzle with honey and a squeeze of lemon juice.",
       "Toss gently to combine and serve chilled.",
     ],
+
+    nutrition: {
+      calories: 120,
+      protein: 1,
+      carbs: 30,
+      fat: 0,
+      fiber: 4,
+      healthScore: 92
+    }
   },
 
   {
@@ -223,6 +278,15 @@ export const mockRecipes = [
       "Drop by rounded spoonfuls onto ungreased baking sheets.",
       "Bake for 10-12 minutes or until edges are golden brown.",
     ],
+
+    nutrition: {
+      calories: 180,
+      protein: 2,
+      carbs: 24,
+      fat: 9,
+      fiber: 1,
+      healthScore: 35
+    }
   },
 
   {
@@ -261,5 +325,14 @@ export const mockRecipes = [
       "Bake for an additional 20-25 minutes or until the filling is set.",
       "Allow to cool before dusting with powdered sugar and slicing into bars.",
     ],
+
+    nutrition: {
+      calories: 140,
+      protein: 2,
+      carbs: 22,
+      fat: 5,
+      fiber: 0,
+      healthScore: 40
+    }
   },
 ];
