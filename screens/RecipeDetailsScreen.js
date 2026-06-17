@@ -12,7 +12,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import NutritionSection from "../components/NutritionSection";
-import { getRecipeDetails } from "../config/hooks/spoonacularService";
+import { getRecipeDetails } from "../config/services/spoonacularService";
 
 export default function RecipeDetailsScreen({ route, navigation }) {
   const recipe = route.params.recipe;

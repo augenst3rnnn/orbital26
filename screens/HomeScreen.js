@@ -13,7 +13,7 @@ import { auth } from "../config/firebase";
 import useAuth from "../config/hooks/useAuth";
 import { getUserProfile } from "../config/firestoreService";
 import { useEffect, useState } from "react";
-import { searchRecipesByIngredients } from "../config/hooks/spoonacularService";
+import { searchRecipesByIngredients } from "../config/services/spoonacularService";
 import RecipeCard from "../components/RecipeCard";
 import Categories from "../components/Categories";
 
@@ -32,21 +32,6 @@ export default function HomeScreen() {
       fetchUserData();
     }
   }, [user]);
-
-  useEffect(() => {
-    if (ingredients.length > 0) {
-      setRecipeLoading(true);
-      searchRecipesByIngredients(ingredients)
-        .then((data) => setRecipes(data))
-        .catch((error) => {
-          console.error("API Error: ", error);
-          setRecipes([]);
-        })
-        .finally(() => setRecipeLoading(false));
-    } else {
-      setRecipes([]);
-    }
-  }, [ingredients]);
 
   useEffect(() => {
     if (ingredients.length > 0) {
