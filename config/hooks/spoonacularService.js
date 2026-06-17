@@ -1,7 +1,7 @@
 import Constants from "expo-constants";
 import { matchesDietaryPreferences } from "../dietaryFilters";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { mockRecipes } from '../../data/mockRecipes'; 
+import { mockRecipes } from "../../data/mockRecipes";
 
 const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
 
@@ -54,20 +54,17 @@ export const searchRecipesByIngredients = async (
     );
 
     if (!detailsResponse.ok) {
-      // If details fetch fails, return original recipes (no filtering)
       console.warn("Could not fetch recipe details for filtering");
       return recipes;
     }
 
     const recipesDetails = await detailsResponse.json();
 
-    //create a map of recipe ID to ingredients
     const ingredientsMap = {};
     recipesDetails.forEach((detail) => {
       ingredientsMap[detail.id] = detail.extendedIngredients || [];
     });
 
-    //filter recipes by dietary preferences
     const filteredRecipes = recipes.filter((recipe) => {
       const recipeIngredients = ingredientsMap[recipe.id] || [];
       return matchesDietaryPreferences(
@@ -91,7 +88,7 @@ export const fetchRecipeNutrition = async (recipeId) => {
     }
     //check if this is a mock recipe
     if (recipeId <= 8) {
-      const mockRecipe = mockRecipes.find(r => r.id === recipeId);
+      const mockRecipe = mockRecipes.find((r) => r.id === recipeId);
       if (mockRecipe && mockRecipe.nutrition) {
         console.log(`Using mock nutrition for recipe ${recipeId}`);
         return mockRecipe.nutrition;
@@ -100,12 +97,12 @@ export const fetchRecipeNutrition = async (recipeId) => {
     //else proceed with real API call
     const cacheKey = `nutrition_${recipeId}`;
     const cachedData = await AsyncStorage.getItem(cacheKey);
-    
+
     if (cachedData) {
       const parsed = JSON.parse(cachedData);
       const cacheAge = Date.now() - parsed.timestamp;
       const twentyFourHours = 24 * 60 * 60 * 1000;
-      
+
       if (cacheAge < twentyFourHours) {
         console.log(`Using cached nutrition for recipe ${recipeId}`);
         return parsed.data;
@@ -113,18 +110,18 @@ export const fetchRecipeNutrition = async (recipeId) => {
         console.log(`Cache expired for recipe ${recipeId}`);
       }
     }
-    
+
     console.log(`Fetching nutrition for recipe ${recipeId} from API`);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const response = await fetch(
       `https://api.spoonacular.com/recipes/${recipeId}/information?includeNutrition=true&apiKey=${SPOONACULAR_API_KEY}`,
-      { signal: controller.signal }
+      { signal: controller.signal },
     );
 
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       throw new Error(`Error fetching nutrition: ${response.statusText}`);
     }
@@ -132,11 +129,19 @@ export const fetchRecipeNutrition = async (recipeId) => {
     const data = await response.json();
 
     const nutrition = {
-      calories: data.nutrition?.nutrients?.find((n) => n.name === "Calories")?.amount || 0,
-      protein: data.nutrition?.nutrients?.find((n) => n.name === "Protein")?.amount || 0,
-      carbs: data.nutrition?.nutrients?.find((n) => n.name === "Carbohydrates")?.amount || 0,
-      fat: data.nutrition?.nutrients?.find((n) => n.name === "Fat")?.amount || 0,
-      fiber: data.nutrition?.nutrients?.find((n) => n.name === "Fiber")?.amount || 0,
+      calories:
+        data.nutrition?.nutrients?.find((n) => n.name === "Calories")?.amount ||
+        0,
+      protein:
+        data.nutrition?.nutrients?.find((n) => n.name === "Protein")?.amount ||
+        0,
+      carbs:
+        data.nutrition?.nutrients?.find((n) => n.name === "Carbohydrates")
+          ?.amount || 0,
+      fat:
+        data.nutrition?.nutrients?.find((n) => n.name === "Fat")?.amount || 0,
+      fiber:
+        data.nutrition?.nutrients?.find((n) => n.name === "Fiber")?.amount || 0,
       healthScore: data.healthScore || 0,
     };
 
@@ -144,7 +149,7 @@ export const fetchRecipeNutrition = async (recipeId) => {
       data: nutrition,
       timestamp: Date.now(),
     };
-    
+
     await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
     console.log(`Cached nutrition for recipe ${recipeId}`);
 
@@ -152,5 +157,66 @@ export const fetchRecipeNutrition = async (recipeId) => {
   } catch (error) {
     console.error("Error fetching recipe nutrition:", error);
     throw error;
+  }
+};
+
+export const getRecipeDetails = async (recipeId) => {
+  try {
+    console.log(`Fetching full details for recipe ${recipeId}`);
+
+    const response = await fetch(
+      `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${SPOONACULAR_API_KEY}`,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error fetching details: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    //extract full ingredients list
+    const extendedIngredients =
+      data.extendedIngredients?.map((ing) => ing.original) || [];
+
+    // extract instructions
+    let instructions = [];
+    if (data.instructions) {
+      // Remove HTML tags
+      const cleanInstructions = data.instructions.replace(/<[^>]*>/g, "");
+
+      //split by numbers (1., 2., etc.)
+      const regex = /\d+\.\s*/g;
+      const parts = cleanInstructions.split(regex);
+
+      if (parts.length > 1) {
+        // Remove empty first element and clean up
+        instructions = parts.slice(1).map((step) => step.trim());
+      } else if (cleanInstructions.length > 0) {
+        // If no numbered steps, try splitting by periods
+        const sentences = cleanInstructions.split(/\.\s+/);
+        if (sentences.length > 1) {
+          instructions = sentences.filter((s) => s.length > 10);
+        } else {
+          instructions = [cleanInstructions];
+        }
+      }
+    }
+
+    if (instructions.length === 0) {
+      instructions = ["No detailed instructions available."];
+    }
+
+    console.log(`${instructions.length} instruction steps found`);
+
+    return {
+      instructions: instructions,
+      extendedIngredients: extendedIngredients,
+    };
+  } catch (error) {
+    console.error("Error fetching recipe details:", error);
+    return {
+      instructions: ["Could not load instructions."],
+      extendedIngredients: [],
+    };
   }
 };
