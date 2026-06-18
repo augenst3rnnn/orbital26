@@ -124,6 +124,7 @@ export const fetchRecipeNutrition = async (recipeId) => {
     const cacheKey = `nutrition_${recipeId}`;
     const cachedData = await getCachedData(cacheKey);
     if (cachedData) {
+      console.log("Using cached recipe nutrition:", recipeId);
       return cachedData;
     }
 
@@ -194,6 +195,7 @@ export const getRecipeDetails = async (recipeId) => {
     const cachedData = await getCachedData(cacheKey);
 
     if (cachedData) {
+      console.log("Using cached recipe details:", recipeId);
       return cachedData;
     }
 
