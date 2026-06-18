@@ -1,7 +1,7 @@
 import Constants from "expo-constants";
 import { matchesDietaryPreferences } from "../dietaryFilters";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { mockRecipes } from "../../data/mockRecipes";
+import { getCachedData, setCachedData } from "./cacheService";
 
 const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
 
@@ -18,7 +18,24 @@ export const searchRecipesByIngredients = async (
       return [];
     }
 
-    const ingredientsString = ingredientsList.join(",");
+    const normalizedIngredients = [...ingredientsList]
+      .map((item) => item.toLowerCase().trim())
+      .sort();
+
+    const normalizedDietary = [...dietaryPreferences]
+      .map((item) => item.toLowerCase().trim())
+      .sort();
+
+    const cacheKey = `search_${normalizedIngredients.join(",")}_${normalizedDietary.join(",")}`;
+    const cachedData = await getCachedData(cacheKey);
+
+    if (cachedData) {
+      console.log("Using cached recipes for ${cacheKey}");
+      return cachedData;
+    }
+
+    const ingredientsString = normalizedIngredients.join(",");
+    console.log("Fetching recipes for ${ingredientsString} from API");
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -31,50 +48,59 @@ export const searchRecipesByIngredients = async (
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`Error fetching recipes: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(
+        `Error fetching recipes: ${response.status} ${errorText}`,
+      );
     }
 
-    let recipes = await response.json();
+    let recipes = await response.json(); //raw API results
 
     if (!Array.isArray(recipes)) {
       throw new Error("Invalid API response format: expected an array");
     }
 
-    //if no dietary filters, return all recipes
-    if (dietaryPreferences.length === 0) {
-      return recipes;
-    }
+    let finalRecipes = recipes; //filtered API results
+    if (dietaryPreferences.length > 0) {
+      const recipeIds = recipes.map((r) => r.id).join(",");
 
-    //for each recipe, get full ingredient list to check dietary compliance
-    const recipeIds = recipes.map((r) => r.id).join(",");
-
-    const detailsResponse = await fetch(
-      `https://api.spoonacular.com/recipes/informationBulk?ids=${recipeIds}&apiKey=${SPOONACULAR_API_KEY}`,
-      { signal: controller.signal },
-    );
-
-    if (!detailsResponse.ok) {
-      console.warn("Could not fetch recipe details for filtering");
-      return recipes;
-    }
-
-    const recipesDetails = await detailsResponse.json();
-
-    const ingredientsMap = {};
-    recipesDetails.forEach((detail) => {
-      ingredientsMap[detail.id] = detail.extendedIngredients || [];
-    });
-
-    const filteredRecipes = recipes.filter((recipe) => {
-      const recipeIngredients = ingredientsMap[recipe.id] || [];
-      return matchesDietaryPreferences(
-        recipe.title,
-        recipeIngredients,
-        dietaryPreferences,
+      const detailsController = new AbortController();
+      const detailsTimeoutId = setTimeout(
+        () => detailsController.abort(),
+        10000,
       );
-    });
 
-    return filteredRecipes;
+      const detailsResponse = await fetch(
+        `https://api.spoonacular.com/recipes/informationBulk?ids=${recipeIds}&apiKey=${SPOONACULAR_API_KEY}`,
+        { signal: detailsController.signal },
+      );
+
+      clearTimeout(detailsTimeoutId);
+
+      if (!detailsResponse.ok) {
+        console.warn("Could not fetch recipe details for filtering");
+      } else {
+        const recipesDetails = await detailsResponse.json();
+
+        const ingredientsMap = {};
+        recipesDetails.forEach((detail) => {
+          ingredientsMap[detail.id] = detail.extendedIngredients || [];
+        });
+
+        finalRecipes = recipes.filter((recipe) => {
+          const recipeIngredients = ingredientsMap[recipe.id] || [];
+          return matchesDietaryPreferences(
+            recipe.title,
+            recipeIngredients,
+            dietaryPreferences,
+          );
+        });
+      }
+    }
+
+    await setCachedData(cacheKey, finalRecipes);
+
+    return finalRecipes;
   } catch (error) {
     console.error("Error searching recipes by ingredients:", error);
     throw error;
@@ -96,19 +122,9 @@ export const fetchRecipeNutrition = async (recipeId) => {
     }
     //else proceed with real API call
     const cacheKey = `nutrition_${recipeId}`;
-    const cachedData = await AsyncStorage.getItem(cacheKey);
-
+    const cachedData = await getCachedData(cacheKey);
     if (cachedData) {
-      const parsed = JSON.parse(cachedData);
-      const cacheAge = Date.now() - parsed.timestamp;
-      const twentyFourHours = 24 * 60 * 60 * 1000;
-
-      if (cacheAge < twentyFourHours) {
-        console.log(`Using cached nutrition for recipe ${recipeId}`);
-        return parsed.data;
-      } else {
-        console.log(`Cache expired for recipe ${recipeId}`);
-      }
+      return cachedData;
     }
 
     console.log(`Fetching nutrition for recipe ${recipeId} from API`);
@@ -123,7 +139,10 @@ export const fetchRecipeNutrition = async (recipeId) => {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`Error fetching nutrition: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(
+        `Error fetching recipes: ${response.status} ${errorText}`,
+      );
     }
 
     const data = await response.json();
@@ -145,14 +164,7 @@ export const fetchRecipeNutrition = async (recipeId) => {
       healthScore: data.healthScore || 0,
     };
 
-    const cacheEntry = {
-      data: nutrition,
-      timestamp: Date.now(),
-    };
-
-    await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
-    console.log(`Cached nutrition for recipe ${recipeId}`);
-
+    await setCachedData(cacheKey, nutrition);
     return nutrition;
   } catch (error) {
     console.error("Error fetching recipe nutrition:", error);
@@ -162,14 +174,47 @@ export const fetchRecipeNutrition = async (recipeId) => {
 
 export const getRecipeDetails = async (recipeId) => {
   try {
+    if (!recipeId) {
+      throw new Error("Recipe ID is required to fetch nutrition information");
+    }
+    //check if this is a mock recipe
+    if (recipeId <= 8) {
+      const mockRecipe = mockRecipes.find((r) => r.id === recipeId);
+
+      if (mockRecipe) {
+        return {
+          instructions: mockRecipe.instructions || [],
+          extendedIngredients: mockRecipe.ingredients || [],
+        };
+      }
+    }
+
+    //check cache before calling API
+    const cacheKey = `details_${recipeId}`;
+    const cachedData = await getCachedData(cacheKey);
+
+    if (cachedData) {
+      return cachedData;
+    }
+
+    //else, call API
     console.log(`Fetching full details for recipe ${recipeId}`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     const response = await fetch(
       `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${SPOONACULAR_API_KEY}`,
+      { signal: controller.signal },
     );
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      throw new Error(`Error fetching details: ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(
+        `Error fetching details: ${response.status} ${errorText}`,
+      );
     }
 
     const data = await response.json();
@@ -180,6 +225,7 @@ export const getRecipeDetails = async (recipeId) => {
 
     // extract instructions
     let instructions = [];
+
     if (data.instructions) {
       // Remove HTML tags
       const cleanInstructions = data.instructions.replace(/<[^>]*>/g, "");
@@ -194,6 +240,7 @@ export const getRecipeDetails = async (recipeId) => {
       } else if (cleanInstructions.length > 0) {
         // If no numbered steps, try splitting by periods
         const sentences = cleanInstructions.split(/\.\s+/);
+
         if (sentences.length > 1) {
           instructions = sentences.filter((s) => s.length > 10);
         } else {
@@ -206,12 +253,14 @@ export const getRecipeDetails = async (recipeId) => {
       instructions = ["No detailed instructions available."];
     }
 
-    console.log(`${instructions.length} instruction steps found`);
-
-    return {
-      instructions: instructions,
-      extendedIngredients: extendedIngredients,
+    const recipeDetails = {
+      instructions,
+      extendedIngredients,
     };
+
+    await setCachedData(cacheKey, recipeDetails);
+
+    return recipeDetails;
   } catch (error) {
     console.error("Error fetching recipe details:", error);
     return {

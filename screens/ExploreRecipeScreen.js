@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockRecipes } from "../data/mockRecipes";
 import RecipeModal from "../components/RecipeModal";
-import useDebounce from "../config/hooks/useDebounce";
+import { useDebounce } from "../config/hooks/useDebounce";
 
 export default function ExploreRecipeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");

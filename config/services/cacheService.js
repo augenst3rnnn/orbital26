@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export async function getCachedData(key, maxAge) {
+const twentyFourHours = 24 * 60 * 60 * 1000;
+
+export async function getCachedData(key) {
   try {
     const cached = await AsyncStorage.getItem(key);
 
@@ -12,7 +14,7 @@ export async function getCachedData(key, maxAge) {
 
     const age = Date.now() - parsed.timestamp;
 
-    if (age > maxAge) {
+    if (age > twentyFourHours) {
       return null;
     }
 
@@ -23,4 +25,16 @@ export async function getCachedData(key, maxAge) {
   }
 }
 
-//export async function setCachedData(key, data) {
+export async function setCachedData(key, data) {
+  try {
+    await AsyncStorage.setItem(
+      key,
+      JSON.stringify({
+        data,
+        timestamp: Date.now(),
+      }),
+    );
+  } catch (error) {
+    console.error("Cache write error:", error);
+  }
+}
