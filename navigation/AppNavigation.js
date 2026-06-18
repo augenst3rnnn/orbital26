@@ -9,7 +9,7 @@ import LoginScreen from "../screens/LoginScreen";
 import SignUpScreen from "../screens/SignUpScreen";
 import useAuth from "../config/hooks/useAuth";
 
-import GroceryScreen from "../screens/GroceryScreen";
+import GroceryScreen from "../screens/groceryScreens/GroceryScreen";
 import MealPlannerScreen from "../screens/MealPlannerScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ExploreRecipeScreen from "../screens/ExploreRecipeScreen";
