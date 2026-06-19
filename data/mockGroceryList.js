@@ -1,4 +1,4 @@
-export const mockGroceryIngredients = [
+export const mockGroceryList = [
   {
     ingredients: [
       {
