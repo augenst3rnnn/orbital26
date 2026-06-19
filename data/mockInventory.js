@@ -1,6 +1,6 @@
 export const mockInventory = [
   {
-    id: 1,
+    id: 1123, //use real id, works when calling API data later
     name: "Egg",
     aisle: "Milk, Eggs, Other Dairy",
     amount: 12,
@@ -9,7 +9,7 @@ export const mockInventory = [
     expiryDays: 5,
   },
   {
-    id: 2,
+    id: 11529,
     name: "Tomato",
     aisle: "Produce",
     amount: 3,
@@ -18,7 +18,7 @@ export const mockInventory = [
     expiryDays: 3,
   },
   {
-    id: 3,
+    id: 1001,
     name: "Milk",
     aisle: "Milk, Eggs, Other Dairy",
     amount: 1,
