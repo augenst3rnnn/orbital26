@@ -17,7 +17,14 @@ import { mockInventory } from "../../data/mockInventory";
 import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
 
-const categories = ["All", "Produce", "Meat", "Dairy", "Pantry", "Beverages"];
+const categories = [
+  { name: "Produce", image: require("../../assets/icons/produce.png") },
+  { name: "Meat", image: require("../../assets/icons/meat.png") },
+  { name: "Dairy", image: require("../../assets/icons/dairy.png") },
+  { name: "Pantry", image: require("../../assets/icons/pantry.png") },
+  { name: "Beverages", image: require("../../assets/icons/beverages.png") },
+];
+
 const categoryMap = {
   Produce: "Produce",
 
@@ -45,7 +52,7 @@ const mockIngredients = [
 export default function GroceryScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   // check logic of this
   const inventoryCount = mockInventory.length;
@@ -88,24 +95,27 @@ export default function GroceryScreen({ navigation }) {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-yellow-100">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-7 pt-8 pb-10">
-          <Text className="text-3xl font-bold text-black">
-            Smart Grocery List
-          </Text>
-          <Text className="text-gray-600 mr-20 mt-2">
-            See what you have, what you need, and what to cook.
-          </Text>
-        </View>
+    <View className="flex-1 bg-white">
+      {/*yellow header*/}
+      <View className="bg-yellow-100 px-7 pt-28 pb-20">
+        <Text className="text-3xl font-bold text-black">
+          Smart Grocery List
+        </Text>
 
-        <View className="flex-1 bg-white rounded-t-[40px] px-6 pt-8">
+        <Text className="text-gray-600 mr-20 mt-2">
+          See what you have, what you need, and what to cook.
+        </Text>
+      </View>
+
+      {/*white rounded body*/}
+      <View className="flex-1 bg-white rounded-t-[40px] px-6 pt-6 -mt-10">
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           {/*search bar*/}
           <View className="bg-gray-100 rounded-full px-5 py-4 flex-row items-center mb-6 shadow">
             <Text className="text-gray-400 mr-3">🔍</Text>
 
             <TextInput
-              placeholder="Add ingredients"
+              placeholder="Search ingredients"
               placeholderTextColor={"gray"}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -119,30 +129,65 @@ export default function GroceryScreen({ navigation }) {
           <FlatList
             horizontal
             data={categories}
-            keyExtractor={(item) => item}
+            keyExtractor={(item) => item.name}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
-              gap: 18,
-              paddingHorizontal: 3,
+              gap: 24,
+              paddingHorizontal: 5,
             }}
             renderItem={({ item }) => (
               <Pressable
-                onPress={() => setSelectedCategory(item)}
+                onPress={() =>
+                  setSelectedCategory(
+                    selectedCategory === item.name ? null : item.name,
+                  )
+                }
                 className="items-center"
               >
                 <View
-                  className={`w-10 h-10 rounded-full items-center justify-center ${selectedCategory === item ? "bg-purple-500" : "bg-gray-100"}`}
+                  className={`w-12 h-12 rounded-full items-center justify-center ${selectedCategory === item.name ? "bg-purple-500" : "bg-gray-100"}`}
                 >
-                  //change this to icons
-                  <Text className="text-2xl">{item}</Text>
+                  <Image
+                    source={item.image}
+                    style={{ width: 40, height: 40 }}
+                  />
                 </View>
 
-                <Text className="text-xs text-gray-600 mt-2 mb-5">{item}</Text>
+                <Text className="text-xs text-gray-600 mt-2 mb-5">
+                  {item.name}
+                </Text>
               </Pressable>
             )}
           />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+
+          {/*navigation cards */}
+          <View className="mt-2 gap-y-5 mb-10">
+            {groceryCards.map((card, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => navigation.navigate(card.screen)}
+                className="bg-purple-50 rounded-2xl p-5 flex-row items-center justify-between"
+              >
+                <View className="flex-1">
+                  <Text className="text-lg font-bold text-black">
+                    {card.title}
+                  </Text>
+
+                  <Text className="text-gray-600 mt-1">{card.subtitle}</Text>
+                </View>
+
+                <Image
+                  source={card.image}
+                  className="w-20 h-20"
+                  resizeMode="contain"
+                />
+
+                <Text className="text-2xl ml-2">{">"}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+    </View>
   );
 }
