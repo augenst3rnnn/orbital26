@@ -72,7 +72,7 @@ export default function GroceryScreen({ navigation }) {
     },
     {
       title: "Missing for saved recipes",
-      subtitle: "View your current inventory",
+      subtitle: `${missingCount} ingredients missing`,
       image: require("../../assets/icons/yellowCart.png"),
       screen: "recipeMissingIngredients",
     },
@@ -90,9 +90,11 @@ export default function GroceryScreen({ navigation }) {
       .includes(debouncedSearchQuery.toLowerCase());
 
     const matchesCategory =
-      selectedCategory === "all" || ingredient.category === selectedCategory;
+      selectedCategory === null || ingredient.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const isSearching = debouncedSearchQuery.trim().length > 0;
 
   return (
     <View className="flex-1 bg-white">
@@ -107,85 +109,120 @@ export default function GroceryScreen({ navigation }) {
         </Text>
       </View>
 
-      {/*white rounded body*/}
       <View className="flex-1 bg-white rounded-t-[40px] px-6 pt-6 -mt-10">
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          {/*search bar*/}
-          <View className="bg-gray-100 rounded-full px-5 py-4 flex-row items-center mb-6 shadow">
-            <Text className="text-gray-400 mr-3">🔍</Text>
+        {/*search bar*/}
+        <View className="bg-gray-100 rounded-full px-5 py-4 flex-row items-center mb-6 shadow">
+          <Text className="text-gray-400 mr-3">🔍</Text>
 
-            <TextInput
-              placeholder="Search ingredients"
-              placeholderTextColor={"gray"}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              className="flex-1 text-base mb-2 pl-2"
-            />
-          </View>
-
-          {/*categories*/}
-          <Text className="text-xl font-bold mb-4">Browse Categories</Text>
-
-          <FlatList
-            horizontal
-            data={categories}
-            keyExtractor={(item) => item.name}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              gap: 24,
-              paddingHorizontal: 5,
-            }}
-            renderItem={({ item }) => (
-              <Pressable
-                onPress={() =>
-                  setSelectedCategory(
-                    selectedCategory === item.name ? null : item.name,
-                  )
-                }
-                className="items-center"
-              >
-                <View
-                  className={`w-12 h-12 rounded-full items-center justify-center ${selectedCategory === item.name ? "bg-purple-500" : "bg-gray-100"}`}
-                >
-                  <Image
-                    source={item.image}
-                    style={{ width: 40, height: 40 }}
-                  />
-                </View>
-
-                <Text className="text-xs text-gray-600 mt-2 mb-5">
-                  {item.name}
-                </Text>
-              </Pressable>
-            )}
+          <TextInput
+            placeholder="Search ingredients"
+            placeholderTextColor={"gray"}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            className="flex-1 text-base mb-2 pl-2"
           />
+        </View>
 
-          {/*navigation cards */}
-          <View className="mt-2 gap-y-5 mb-10">
-            {groceryCards.map((card, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => navigation.navigate(card.screen)}
-                className="bg-purple-50 rounded-2xl p-5 flex-row items-center justify-between"
-              >
-                <View className="flex-1">
-                  <Text className="text-lg font-bold text-black">
-                    {card.title}
-                  </Text>
+        {/*body*/}
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 40 }}
+        >
+          {/*render search results OR home content*/}
+          {isSearching ? (
+            <View>
+              <Text className="text-xl font-bold mb-4 px-5">
+                Search Results
+              </Text>
 
-                  <Text className="text-gray-600 mt-1">{card.subtitle}</Text>
-                </View>
+              {filteredIngredients.map((ingredient) => (
+                <Pressable
+                  key={ingredient.id}
+                  className="flex-row items-center justify-between bg-purple-50 rounded-2xl px-4 py-4 mb-3"
+                >
+                  <View>
+                    <Text className="font-bold text-base">
+                      {ingredient.name}
+                    </Text>
+                    <Text className="text-gray-500 text-sm">
+                      {ingredient.quantity}
+                    </Text>
+                  </View>
 
-                <Image
-                  source={card.image}
-                  className="w-20 h-20"
-                  resizeMode="contain"
-                />
+                  <Text className="text-purple-600 font-bold">Add</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <View>
+              {/*categories*/}
+              <Text className="text-xl font-bold mb-4">Browse Categories</Text>
 
-                <Text className="text-2xl ml-2">{">"}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+              <FlatList
+                horizontal
+                data={categories}
+                keyExtractor={(item) => item.name}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  gap: 24,
+                  paddingHorizontal: 5,
+                }}
+                renderItem={({ item }) => (
+                  <Pressable
+                    onPress={() =>
+                      setSelectedCategory(
+                        selectedCategory === item.name ? null : item.name,
+                      )
+                    }
+                    className="items-center"
+                  >
+                    <View
+                      className={`w-12 h-12 rounded-full items-center justify-center ${selectedCategory === item.name ? "bg-purple-500" : "bg-gray-100"}`}
+                    >
+                      <Image
+                        source={item.image}
+                        style={{ width: 40, height: 40 }}
+                      />
+                    </View>
+
+                    <Text className="text-xs text-gray-600 mt-2 mb-5">
+                      {item.name}
+                    </Text>
+                  </Pressable>
+                )}
+              />
+
+              {/*grocery navigation cards */}
+              <View className="mt-2 gap-y-5 mb-10">
+                {groceryCards.map((card, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => navigation.navigate(card.screen)}
+                    className="bg-purple-50 rounded-2xl p-5 flex-row items-center justify-between"
+                  >
+                    <View className="flex-1">
+                      <Text className="text-lg font-bold text-black">
+                        {card.title}
+                      </Text>
+
+                      <Text className="text-gray-600 mt-1">
+                        {card.subtitle}
+                      </Text>
+                    </View>
+
+                    <Image
+                      source={card.image}
+                      className="w-20 h-20"
+                      resizeMode="contain"
+                    />
+
+                    <Text className="text-2xl ml-2">{">"}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
         </ScrollView>
       </View>
     </View>
