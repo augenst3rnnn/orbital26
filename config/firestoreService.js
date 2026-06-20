@@ -1,5 +1,5 @@
-import { db } from "./firebase";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { db, auth} from "./firebase";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove} from "firebase/firestore";
 
 export const getUserProfile = async (userId) => {
     try {
@@ -71,6 +71,22 @@ export const updateDisplayName = async (userId, displayName) => {
     } catch (error) {
         console.error('Error updating user display name:', error);
         throw error;
+    }
+};
+
+export const getFavoriteRecipes = async (userId) => {
+    try {
+        const userRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            return data?.favoriteRecipes || [];
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching favorite recipes:', error);
+        return [];
     }
 };
 
