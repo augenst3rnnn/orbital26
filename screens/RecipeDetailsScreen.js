@@ -14,13 +14,14 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import NutritionSection from "../components/NutritionSection";
-import { getRecipeDetails } from "../config/services/spoonacularService";  // ← FIXED
+import { getRecipeDetails } from "../config/services/spoonacularService";
 import {
     getFavoriteRecipes,
     saveFavoriteRecipe,
     removeFavoriteRecipe
 } from "../config/firestoreService";
 import { auth } from "../config/firebase";
+import { mockRecipes } from "../data/mockRecipes";
 
 export default function RecipeDetailsScreen({ route, navigation }) {
   const recipe = route.params.recipe;
@@ -30,7 +31,6 @@ export default function RecipeDetailsScreen({ route, navigation }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
 
-  // Check if recipe is already favorited
   useEffect(() => {
       checkFavoriteStatus();
   }, []);
@@ -50,6 +50,38 @@ export default function RecipeDetailsScreen({ route, navigation }) {
 
   useEffect(() => {
     const fetchDetails = async () => {
+      //check if the recipe is a mock recipe with full data from firestore
+      if (recipe.id <= 8 && recipe.ingredients && recipe.ingredients.length > 0) {
+        setEnrichedRecipe({
+          ...recipe,
+          extendedIngredients: recipe.ingredients.map((ing) => ({
+            original: ing,
+          })),
+        });
+        setDetailsFetched(true);
+        return;
+      }
+
+      // fallback: if mock recipe but missing data, use mockRecipes file
+      if (recipe.id <= 8) {
+        const mockRecipe = mockRecipes.find(r => r.id === recipe.id);
+        if (mockRecipe) {
+          setEnrichedRecipe({
+            ...recipe,
+            ingredients: mockRecipe.ingredients,
+            instructions: mockRecipe.instructions,
+            summary: mockRecipe.summary || recipe.summary,
+            readyInMinutes: mockRecipe.readyInMinutes || recipe.readyInMinutes,
+            servings: mockRecipe.servings || recipe.servings,
+            extendedIngredients: mockRecipe.ingredients.map((ing) => ({
+              original: ing,
+            })),
+          });
+          setDetailsFetched(true);
+          return;
+        }
+      }
+
       const needsIngredients =
         !recipe.extendedIngredients || recipe.extendedIngredients.length === 0;
       const needsInstructions =
@@ -111,36 +143,47 @@ export default function RecipeDetailsScreen({ route, navigation }) {
     return currentRecipe.summary.replace(/<[^>]*>/g, "");
   };
 
-  {/*handle favourite button*/}
   const handleToggleFavorite = async () => {
-      try {
-          const userId = auth.currentUser?.uid;
-          if (!userId) {
-              Alert.alert('Login Required', 'Please login to save favorites');
-              return;
-          }
+  try {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      Alert.alert('Login Required', 'Please login to save favorites');
+      return;
+    }
 
-          setFavoriteLoading(true);
+    setFavoriteLoading(true);
 
-          if (isFavorite) {
-              await removeFavoriteRecipe(userId, currentRecipe.id);
-              setIsFavorite(false);
-              Alert.alert('Removed', 'Recipe removed from favorites');
-          } else {
-              await saveFavoriteRecipe(userId, currentRecipe.id, {
-                  title: currentRecipe.title,
-                  image: currentRecipe.image,
-              });
-              setIsFavorite(true);
-              Alert.alert('Saved', 'Recipe added to favorites!');
-          }
-      } catch (error) {
-          console.error('Error toggling favorite:', error);
-          Alert.alert('Error', 'Failed to update favorites');
-      } finally {
-          setFavoriteLoading(false);
-      }
-  };
+    const isMockRecipe = currentRecipe?.id && currentRecipe.id <= 8;
+
+    if (isFavorite) {
+      await removeFavoriteRecipe(userId, currentRecipe.id);
+      setIsFavorite(false);
+      Alert.alert('Removed', 'Recipe removed from favorites');
+    } else {
+      await saveFavoriteRecipe(userId, currentRecipe.id, {
+        id: currentRecipe.id,
+        title: currentRecipe.title,
+        image: currentRecipe.image,
+        //full data for mock recipes
+        summary: isMockRecipe ? currentRecipe.summary || '' : '',
+        ingredients: isMockRecipe ? currentRecipe.ingredients || [] : [],
+        instructions: isMockRecipe ? currentRecipe.instructions || [] : [],
+        readyInMinutes: isMockRecipe ? currentRecipe.readyInMinutes || 20 : 20,
+        servings: isMockRecipe ? currentRecipe.servings || 2 : 2,
+        likes: isMockRecipe ? currentRecipe.likes || 0 : 0,
+        isMock: isMockRecipe,
+        savedAt: new Date().toISOString()
+      });
+      setIsFavorite(true);
+      Alert.alert('Saved', 'Recipe added to favorites!');
+    }
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+    Alert.alert('Error', 'Failed to update favorites');
+  } finally {
+    setFavoriteLoading(false);
+  }
+};
 
   return (
     <ScrollView
@@ -148,7 +191,6 @@ export default function RecipeDetailsScreen({ route, navigation }) {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 100 }}
     >
-      {/* Recipe Image */}
       <Image
         source={getImageSource()}
         style={{
@@ -160,13 +202,11 @@ export default function RecipeDetailsScreen({ route, navigation }) {
       />
 
       <View className="px-4 pt-4 bg-white">
-        {/* Title and Favorite Button */}
         <View className="flex-row justify-between items-center">
           <Text className="text-3xl font-bold flex-1">
             {currentRecipe.title}
           </Text>
           
-          {/* Favorite Button */}
           <TouchableOpacity
           onPress={handleToggleFavorite}
           disabled={favoriteLoading}
@@ -187,7 +227,6 @@ export default function RecipeDetailsScreen({ route, navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Time and Servings */}
         <View className="flex-row mt-2 mb-4">
           <View className="bg-gray-100 border border-gray-300 rounded-lg px-3 py-1.5 mr-2 flex-row items-center">
             <Image
@@ -209,14 +248,11 @@ export default function RecipeDetailsScreen({ route, navigation }) {
           </View>
         </View>
 
-        {/* Description */}
         <Text className="text-lg font-semibold mb-2">Description</Text>
         <Text className="text-gray-600 mb-4">{getCleanSummary()}</Text>
 
-        {/* Nutrition Section */}
         <NutritionSection recipeId={currentRecipe.id} />
 
-        {/* Ingredients */}
         <Text className="text-lg font-semibold mb-2 mt-4">Ingredients</Text>
         {isLoading ? (
           <ActivityIndicator size="small" color="#eab308" />
@@ -238,7 +274,6 @@ export default function RecipeDetailsScreen({ route, navigation }) {
           <Text className="text-gray-400">No ingredients listed</Text>
         )}
 
-        {/* Instructions */}
         <Text className="text-lg font-semibold mb-2 mt-4">Instructions</Text>
         {isLoading ? (
           <ActivityIndicator size="small" color="#eab308" />
@@ -254,7 +289,6 @@ export default function RecipeDetailsScreen({ route, navigation }) {
         )}
       </View>
 
-      {/* Back Button */}
       <Pressable
         className="absolute top-14 left-5 bg-white rounded-full p-2 shadow"
         onPress={() => navigation.goBack()}

@@ -99,7 +99,14 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
                 id: recipeId,
                 title: recipeData.title,
                 image: recipeData.image,
-                savedAt: new Date().toISOString()
+                savedAt: new Date().toISOString(),
+                summary: recipeData.summary || '',
+                ingredients: recipeData.ingredients || [],
+                instructions: recipeData.instructions || [],
+                readyInMinutes: recipeData.readyInMinutes || 20,
+                servings: recipeData.servings || 2,
+                likes: recipeData.likes || 0,
+                isMock: recipeData.isMock || false,
             })
         });
         console.log("Recipe saved to favorites");
