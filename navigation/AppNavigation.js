@@ -9,11 +9,15 @@ import LoginScreen from "../screens/LoginScreen";
 import SignUpScreen from "../screens/SignUpScreen";
 import useAuth from "../config/hooks/useAuth";
 
-import GroceryScreen from "../screens/GroceryScreen";
+import GroceryScreen from "../screens/groceryScreens/GroceryScreen";
 import MealPlannerScreen from "../screens/MealPlannerScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ExploreRecipeScreen from "../screens/ExploreRecipeScreen";
 import RecipeDetailsScreen from "../screens/RecipeDetailsScreen";
+
+import InventoryScreen from "../screens/groceryScreens/InventoryScreen";
+import MissingIngredientsScreen from "../screens/groceryScreens/MissingIngredientsScreen";
+import GroceryListScreen from "../screens/groceryScreens/GroceryListScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -33,6 +37,22 @@ export default function AppNavigation() {
             name="RecipeDetails"
             options={{ headerShown: false }}
             component={RecipeDetailsScreen}
+          />
+          {/* add grocery screens*/}
+          <Stack.Screen
+            name="Inventory"
+            options={{ headerShown: false }}
+            component={InventoryScreen}
+          />
+          <Stack.Screen
+            name="recipeMissingIngredients"
+            options={{ headerShown: false }}
+            component={MissingIngredientsScreen}
+          />
+          <Stack.Screen
+            name="groceryList"
+            options={{ headerShown: false }}
+            component={GroceryListScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
