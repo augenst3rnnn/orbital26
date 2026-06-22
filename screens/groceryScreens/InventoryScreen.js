@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,24 @@ export default function InventoryScreen({ navigation }) {
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedLetterGroup, setSelectedLetterGroup] = useState("A-Z");
   const [showLetterOptions, setShowLetterOptions] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+
+  useEffect(() => {
+    const trimmedQuery = debouncedSearchQuery.trim();
+
+    if (trimmedQuery === "") {
+      return;
+    }
+
+    setRecentSearches((prevSearches) => {
+      const withoutDuplicate = prevSearches.filter(
+        (search) => search.toLowerCase() !== trimmedQuery.toLowerCase(),
+      );
+
+      //most recent search in front
+      return [trimmedQuery, ...withoutDuplicate].slice(0, 5);
+    });
+  }, [debouncedSearchQuery]);
 
   const letterGroups = [
     { label: "All", start: null, end: null },
@@ -119,7 +137,28 @@ export default function InventoryScreen({ navigation }) {
             </View>
           ) : (
             <View>
-              <Text className="text-xl font-bold mb-4 px-5">Recent</Text>
+              {/*recent searches*/}
+              {recentSearches.length > 0 && (
+                <View className="mb-4">
+                  <Text className="text-xl font-bold mb-3 px-5">Recent</Text>
+
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View className="flex-row gap-4 px-2">
+                      {recentSearches.map((search) => (
+                        <TouchableOpacity
+                          key={search}
+                          onPress={() => setSearchQuery(search)}
+                          className="bg-purple-100 px-4 py-1 rounded-xl"
+                        >
+                          <Text className="text-purple-700 text-xs font-semibold">
+                            {search}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
+                </View>
+              )}
 
               {/*inventory & filter by letter button*/}
               <View className="flex-row items-center justify-between">
