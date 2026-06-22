@@ -180,26 +180,6 @@ export default function HomeScreen() {
             ))}
           </View>
         )}
-
-        {loading ? (
-          <Text>Loading...</Text>
-        ) : userData ? (
-          <View className="mt-6 bg-gray-100 p-4 rounded-lg">
-            <Text className="text-lg font-semibold">
-              Name: {userData.displayName}
-            </Text>
-            <Text className="text-lg mt-2">Email: {userData.email}</Text>
-          </View>
-        ) : (
-          <Text className="text-lg mt-4">No user data found</Text>
-        )}
-
-        <TouchableOpacity
-          onPress={handleLogout}
-          className="py-3 px-1 w-20 bg-yellow-400 rounded-xl"
-        >
-          <Text className="text-center font-bold text-lg">Logout</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
