@@ -99,7 +99,7 @@ export default function GroceryScreen({ navigation }) {
   return (
     <View className="flex-1 bg-white">
       {/*yellow header*/}
-      <View className="bg-yellow-100 px-7 pt-28 pb-20">
+      <View className="bg-yellow-200 px-7 pt-28 pb-20">
         <Text className="text-3xl font-bold text-black">
           Smart Grocery List
         </Text>
