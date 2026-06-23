@@ -70,7 +70,7 @@ export default function InventoryScreen({ navigation }) {
       (group) => group.label === selectedLetterGroup,
     );
 
-    if (!selectedGroup || selectedGroup.label === "A-Z") {
+    if (!selectedGroup || selectedGroup.label === "All") {
       return true;
     }
 
@@ -159,7 +159,6 @@ export default function InventoryScreen({ navigation }) {
                   </ScrollView>
                 </View>
               )}
-
               {/*inventory & filter by letter button*/}
               <View className="flex-row items-center justify-between">
                 <Text className="font-bold text-base">Inventory</Text>
@@ -171,9 +170,9 @@ export default function InventoryScreen({ navigation }) {
                   <Text className="text-xs">{selectedLetterGroup}</Text>
                 </TouchableOpacity>
               </View>
-
+              {/*dropdown options*/}
               {showLetterOptions && (
-                <View className="absolute right-0 top-10 bg-white rounded-xl shadow-lg p-2">
+                <View className="absolute right-0 top-10 bg-white rounded-xl shadow-lg p-2 z-50 outline">
                   {letterGroups.map((group) => (
                     <TouchableOpacity
                       key={group.label}
@@ -200,6 +199,34 @@ export default function InventoryScreen({ navigation }) {
                   ))}
                 </View>
               )}
+              {/*display all inventory*/}
+              <View>
+                {filterByLetterGroup.map((ingredient) => (
+                  <View key={ingredient.id}>
+                    <View className="flex-row items-center justify-between mt-8 px-2">
+                      <View className="gap-2">
+                        <Text className="font-semibold text-lg">
+                          {ingredient.name}
+                        </Text>
+                        <Text className="text-sm text-gray-700">
+                          {ingredient.amount}
+                        </Text>
+                      </View>
+
+                      <View className="items-end gap-4">
+                        <TouchableOpacity className="">
+                          <Text className="text-lg">...</Text>
+                        </TouchableOpacity>
+
+                        <Text className="text-xs text-gray-700">
+                          Exp. in {ingredient.expiryDays} days
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="w-full h-[1px] bg-gray-400 mt-4" />
+                  </View>
+                ))}
+              </View>
             </View>
           )}
         </ScrollView>
