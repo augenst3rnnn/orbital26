@@ -16,6 +16,7 @@ import { useDebounce } from "../../config/hooks/useDebounce";
 import { mockInventory } from "../../data/mockInventory";
 import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
+import EditIngredientModal from "../../components/EditIngredientModal";
 
 export default function InventoryScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,6 +24,8 @@ export default function InventoryScreen({ navigation }) {
   const [selectedLetterGroup, setSelectedLetterGroup] = useState("A-Z");
   const [showLetterOptions, setShowLetterOptions] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [selectedIngredient, setSelectedIngredient] = useState(null);
+  const [showEditOptions, setShowEditOptions] = useState(false);
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -78,6 +81,11 @@ export default function InventoryScreen({ navigation }) {
 
     return firstChar >= selectedGroup.start && firstChar <= selectedGroup.end;
   });
+
+  const handleOpenEditModal = (ingredient) => {
+    setSelectedIngredient(ingredient);
+    setShowEditOptions(true);
+  };
 
   return (
     <View className="flex-1 bg-white">
@@ -172,7 +180,7 @@ export default function InventoryScreen({ navigation }) {
               </View>
               {/*dropdown options*/}
               {showLetterOptions && (
-                <View className="absolute right-0 top-10 bg-white rounded-xl shadow-lg p-2 z-50 outline">
+                <View className="absolute right-0 top-10 bg-white rounded-xl shadow-lg p-2 z-50">
                   {letterGroups.map((group) => (
                     <TouchableOpacity
                       key={group.label}
@@ -209,12 +217,20 @@ export default function InventoryScreen({ navigation }) {
                           {ingredient.name}
                         </Text>
                         <Text className="text-sm text-gray-700">
-                          {ingredient.amount}
+                          {ingredient.amount} {ingredient.unit}
                         </Text>
                       </View>
 
                       <View className="items-end gap-4">
-                        <TouchableOpacity className="">
+                        <TouchableOpacity
+                          onPress={() => {
+                            handleOpenEditModal(ingredient);
+                            console.log(
+                              "Pressed edit button: ",
+                              ingredient.name,
+                            );
+                          }}
+                        >
                           <Text className="text-lg">...</Text>
                         </TouchableOpacity>
 
@@ -239,6 +255,19 @@ export default function InventoryScreen({ navigation }) {
       >
         <Text className="text-black text-xl">←</Text>
       </TouchableOpacity>
+
+      <EditIngredientModal
+        visible={showEditOptions}
+        ingredient={selectedIngredient}
+        onClose={() => {
+          setShowEditOptions(false);
+          setSelectedIngredient(null);
+        }}
+        onSave={() => {
+          setShowEditOptions(false);
+          setSelectedIngredient(null);
+        }}
+      />
     </View>
   );
 }
