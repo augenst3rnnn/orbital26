@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,10 +16,45 @@ import { useDebounce } from "../../config/hooks/useDebounce";
 import { mockInventory } from "../../data/mockInventory";
 import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
+import EditIngredientModal from "../../components/EditIngredientModal";
 
 export default function InventoryScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [selectedLetterGroup, setSelectedLetterGroup] = useState("A-Z");
+  const [showLetterOptions, setShowLetterOptions] = useState(false);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [selectedIngredient, setSelectedIngredient] = useState(null);
+  const [showEditOptions, setShowEditOptions] = useState(false);
+
+  useEffect(() => {
+    const trimmedQuery = debouncedSearchQuery.trim();
+
+    if (trimmedQuery === "") {
+      return;
+    }
+
+    setRecentSearches((prevSearches) => {
+      const withoutDuplicate = prevSearches.filter(
+        (search) => search.toLowerCase() !== trimmedQuery.toLowerCase(),
+      );
+
+      //most recent search in front
+      return [trimmedQuery, ...withoutDuplicate].slice(0, 5);
+    });
+  }, [debouncedSearchQuery]);
+
+  const letterGroups = [
+    { label: "All", start: null, end: null },
+    { label: "A-C", start: "a", end: "c" },
+    { label: "D-F", start: "d", end: "f" },
+    { label: "G-I", start: "g", end: "i" },
+    { label: "J-L", start: "j", end: "l" },
+    { label: "M-O", start: "m", end: "o" },
+    { label: "P-R", start: "p", end: "r" },
+    { label: "S-U", start: "s", end: "u" },
+    { label: "V-Z", start: "v", end: "z" },
+  ];
 
   const filteredIngredients = mockInventory.filter((ingredient) => {
     const matchesSearch = ingredient.name
@@ -33,10 +68,29 @@ export default function InventoryScreen({ navigation }) {
 
   const isSearching = debouncedSearchQuery.trim().length > 0;
 
+  const filterByLetterGroup = mockInventory.filter((ingredient) => {
+    const selectedGroup = letterGroups.find(
+      (group) => group.label === selectedLetterGroup,
+    );
+
+    if (!selectedGroup || selectedGroup.label === "All") {
+      return true;
+    }
+
+    const firstChar = ingredient.name.toLowerCase()[0];
+
+    return firstChar >= selectedGroup.start && firstChar <= selectedGroup.end;
+  });
+
+  const handleOpenEditModal = (ingredient) => {
+    setSelectedIngredient(ingredient);
+    setShowEditOptions(true);
+  };
+
   return (
     <View className="flex-1 bg-white">
       {/*yellow header*/}
-      <View className="bg-yellow-100 px-10 pt-28 pb-20">
+      <View className="bg-yellow-200 px-10 pt-28 pb-20">
         <View className="translate-y-6">
           <Text className="text-xl font-bold text-black">
             You have ({inventoryCount})
@@ -91,11 +145,103 @@ export default function InventoryScreen({ navigation }) {
             </View>
           ) : (
             <View>
-              <Text className="text-xl font-bold mb-4 px-5">Recent</Text>
+              {/*recent searches*/}
+              {recentSearches.length > 0 && (
+                <View className="mb-4">
+                  <Text className="text-xl font-bold mb-3 px-5">Recent</Text>
 
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View className="flex-row gap-4 px-2">
+                      {recentSearches.map((search) => (
+                        <TouchableOpacity
+                          key={search}
+                          onPress={() => setSearchQuery(search)}
+                          className="bg-purple-100 px-4 py-1 rounded-xl"
+                        >
+                          <Text className="text-purple-700 text-xs font-semibold">
+                            {search}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
+                </View>
+              )}
               {/*inventory & filter by letter button*/}
               <View className="flex-row items-center justify-between">
                 <Text className="font-bold text-base">Inventory</Text>
+
+                <TouchableOpacity
+                  className="bg-gray-200 rounded-xl px-4 py-1"
+                  onPress={() => setShowLetterOptions(!showLetterOptions)}
+                >
+                  <Text className="text-xs">{selectedLetterGroup}</Text>
+                </TouchableOpacity>
+              </View>
+              {/*dropdown options*/}
+              {showLetterOptions && (
+                <View className="absolute right-0 top-10 bg-white rounded-xl shadow-lg p-2 z-50">
+                  {letterGroups.map((group) => (
+                    <TouchableOpacity
+                      key={group.label}
+                      onPress={() => {
+                        setSelectedLetterGroup(group.label);
+                        setShowLetterOptions(false);
+                      }}
+                      className={`px-6 py-2 pt-2 items-center rounded-lg ${
+                        selectedLetterGroup === group.label
+                          ? "bg-purple-100"
+                          : "bg-white"
+                      }`}
+                    >
+                      <Text
+                        className={`text-sm ${
+                          selectedLetterGroup === group.label
+                            ? "text-purple-700 font-bold"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        {group.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              {/*display all inventory*/}
+              <View>
+                {filterByLetterGroup.map((ingredient) => (
+                  <View key={ingredient.id}>
+                    <View className="flex-row items-center justify-between mt-8 px-2">
+                      <View className="gap-2">
+                        <Text className="font-semibold text-lg">
+                          {ingredient.name}
+                        </Text>
+                        <Text className="text-sm text-gray-700">
+                          {ingredient.amount} {ingredient.unit}
+                        </Text>
+                      </View>
+
+                      <View className="items-end gap-4">
+                        <TouchableOpacity
+                          onPress={() => {
+                            handleOpenEditModal(ingredient);
+                            console.log(
+                              "Pressed edit button: ",
+                              ingredient.name,
+                            );
+                          }}
+                        >
+                          <Text className="text-lg">...</Text>
+                        </TouchableOpacity>
+
+                        <Text className="text-xs text-gray-700">
+                          Exp. in {ingredient.expiryDays} days
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="w-full h-[1px] bg-gray-400 mt-4" />
+                  </View>
+                ))}
               </View>
             </View>
           )}
@@ -103,12 +249,25 @@ export default function InventoryScreen({ navigation }) {
       </View>
 
       {/*back button*/}
-      <Pressable
+      <TouchableOpacity
         className="absolute top-14 left-5 bg-white rounded-full p-2 shadow"
         onPress={() => navigation.goBack()}
       >
         <Text className="text-black text-xl">←</Text>
-      </Pressable>
+      </TouchableOpacity>
+
+      <EditIngredientModal
+        visible={showEditOptions}
+        ingredient={selectedIngredient}
+        onClose={() => {
+          setShowEditOptions(false);
+          setSelectedIngredient(null);
+        }}
+        onSave={() => {
+          setShowEditOptions(false);
+          setSelectedIngredient(null);
+        }}
+      />
     </View>
   );
 }
