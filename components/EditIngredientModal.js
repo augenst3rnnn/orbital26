@@ -16,7 +16,14 @@ export default function RecipeModal({ visible, ingredient, onClose, onSave }) {
   return (
     <Modal visible={visible} transparent={true} animationType="slide">
       {/*dark bg overlay*/}
-      <View className="flex-1 bg-black/50 justify-end">
+      <View className="flex-1 justify-end">
+        <BlurView
+          intensity={20}
+          className="absolute top-0 bottom-0 left-0 right-0"
+        />
+        <View className="absolute top-0 bottom-0 left-0 right-0 bg-black/30" />
+
+        {/*white modal popup*/}
         <View className="bg-white rounded-t-[40px] px-6 pt-5 pb-10 max-h-[80%]">
           {/*close*/}
           <View className="items-end mr-1">
@@ -64,7 +71,15 @@ export default function RecipeModal({ visible, ingredient, onClose, onSave }) {
               </Text>
               <View className="bg-purple-200 rounded-lg p-4">
                 <View className="flex-row items-center justify-between">
-                  <Text>Exp. in {ingredient.expiryDays} days</Text>
+                  <View className="flex-row items-center gap-2">
+                    <Image
+                      source={require("../assets/icons/calendar.png")}
+                      style={{ width: 22, height: 22 }}
+                    />
+                    <Text className="font-semibold">
+                      Exp. in {ingredient.expiryDays} days
+                    </Text>
+                  </View>
                   <TouchableOpacity>
                     <Image
                       source={require("../assets/icons/dropdown.png")}
