@@ -1,17 +1,83 @@
-import { View, Text, ScrollView } from "react-native";
+import { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StatusBar,
+  ScrollView,
+  TextInput,
+  Pressable,
+  FlatList,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { mockRecipes } from "../../data/mockRecipes";
+import { useDebounce } from "../../config/hooks/useDebounce";
+import { mockInventory } from "../../data/mockInventory";
+import { mockMissingIngredients } from "../../data/mockMissingIngredients";
+import { mockGroceryList } from "../../data/mockGroceryList";
+import EditIngredientModal from "../../components/EditIngredientModal";
 
 {
   /*placeholder first*/
 }
-export default function MissingIngredientsScreen() {
+export default function MissingIngredientsScreen({ navigation }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 justify-center items-center">
-        <Text className="text-xl font-semibold text-gray-800">
-          Missing Ingredients For Saved Recipes
-        </Text>
+    <View className="flex-1 bg-white">
+      {/*yellow header*/}
+      <View className="bg-yellow-200 px-10 pt-28 pb-20">
+        <View className="translate-y-6">
+          <Text className="text-xl font-bold text-black">
+            Missing for recipes
+          </Text>
+        </View>
       </View>
-    </SafeAreaView>
+
+      <View className="flex-1 bg-white rounded-t-[40px] px-6 pt-6 -mt-10">
+        {/*search bar*/}
+        <View className="bg-gray-100 rounded-full px-5 py-4 flex-row items-center mb-6 shadow">
+          <Text className="text-gray-400 mr-3">🔍</Text>
+
+          <TextInput
+            placeholder="Search recipes"
+            placeholderTextColor={"gray"}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            className="flex-1 text-base mb-2 pl-2"
+          />
+        </View>
+
+        {/*body*/}
+        <ScrollView>
+          <Text className="text-lg font-semibold pl-2">
+            From your saved recipes
+          </Text>
+
+          <View className="gap-4 p-2">
+            {mockMissingIngredients.map((recipe) => {
+              <View key={recipe.recipeId} className="rounded-lg shadow-lg p-2">
+                <Text className="font-semibold">{recipe.recipeName}</Text>
+                <View className="rounded-lg p-2 bg-purple-100 items-center">
+                  <Text className="font-xs text-purple-700">
+                    {recipe.ingredients.length} missing
+                  </Text>
+                </View>
+              </View>;
+            })}
+          </View>
+        </ScrollView>
+      </View>
+
+      {/*back button*/}
+      <TouchableOpacity
+        className="absolute top-14 left-5 bg-white rounded-full p-2 shadow"
+        onPress={() => navigation.goBack()}
+      >
+        <Text className="text-black text-xl">←</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
