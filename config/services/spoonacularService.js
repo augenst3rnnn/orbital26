@@ -30,12 +30,12 @@ export const searchRecipesByIngredients = async (
     const cachedData = await getCachedData(cacheKey);
 
     if (cachedData) {
-      console.log("Using cached recipes for ${cacheKey}");
+      console.log(`Using cached recipes for ${cacheKey}`);
       return cachedData;
     }
 
     const ingredientsString = normalizedIngredients.join(",");
-    console.log("Fetching recipes for ${ingredientsString} from API");
+    console.log(`Fetching recipes for ${ingredientsString} from API`);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -184,8 +184,9 @@ export const getRecipeDetails = async (recipeId) => {
 
       if (mockRecipe) {
         return {
+          ...mockRecipe,
           instructions: mockRecipe.instructions || [],
-          extendedIngredients: mockRecipe.ingredients || [],
+          extendedIngredients: mockRecipe.ingredients || [], //follow same shape as real API
         };
       }
     }

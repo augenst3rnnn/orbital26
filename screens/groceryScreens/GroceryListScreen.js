@@ -18,9 +18,6 @@ import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
 import EditIngredientModal from "../../components/EditIngredientModal";
 
-{
-  /*placeholder first*/
-}
 export default function MissingIngredientsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);

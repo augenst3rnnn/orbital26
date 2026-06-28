@@ -18,9 +18,6 @@ import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
 import EditIngredientModal from "../../components/EditIngredientModal";
 
-{
-  /*placeholder first*/
-}
 export default function MissingIngredientsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -52,20 +49,46 @@ export default function MissingIngredientsScreen({ navigation }) {
 
         {/*body*/}
         <ScrollView>
-          <Text className="text-lg font-semibold pl-2">
+          <Text className="text-lg font-semibold pl-2 pb-4">
             From your saved recipes
           </Text>
 
           <View className="gap-4 p-2">
             {mockMissingIngredients.map((recipe) => {
-              <View key={recipe.recipeId} className="rounded-lg shadow-lg p-2">
-                <Text className="font-semibold">{recipe.recipeName}</Text>
-                <View className="rounded-lg p-2 bg-purple-100 items-center">
-                  <Text className="font-xs text-purple-700">
-                    {recipe.ingredients.length} missing
+              return (
+                <View
+                  key={recipe.recipeId}
+                  className="border-[1px] border-gray-300 bg-gray-50 rounded-lg shadow-lg pt-2 pb-4 px-2"
+                >
+                  <Text className="text-xl font-bold px-2 pt-1 pb-3">
+                    {recipe.recipeName}
                   </Text>
+                  <View className="rounded-full p-2 bg-purple-200 w-20 items-center ml-2 mb-2">
+                    <Text className="text-[10px] text-purple-800">
+                      {recipe.ingredients.length} missing
+                    </Text>
+                  </View>
+
+                  {/*missing ingredients for 1 recipe*/}
+                  {recipe.ingredients.map((ingredient) => (
+                    <View
+                      key={ingredient.id}
+                      className="flex-row items-center justify-between gap-2 mb-2"
+                    >
+                      <View className="flex-row items-center gap-3">
+                        <TouchableOpacity>
+                          <View className="w-5 h-5 rounded-full border border-gray-400" />
+                        </TouchableOpacity>
+                        <Text className="font-sm">{ingredient.name}</Text>
+                      </View>
+
+                      <Text className="font-xs text-gray-700 mr-4 pt-3">
+                        {ingredient.amount} {ingredient.unit}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
-              </View>;
+              );
             })}
           </View>
         </ScrollView>
