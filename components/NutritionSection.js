@@ -112,7 +112,7 @@ const NutritionSection = ({ recipeId }) => {
                 <View className="flex-row justify-between items-start mb-2">
                   <Image
                     source={require("../assets/icons/protein.png")}
-                    style={{ width: 20, height: 16, marginRight: 6 }}
+                    style={{ width: 20, height: 20, marginRight: 6 }}
                   />
                   <View className="bg-blue-100 px-2 py-0.5 rounded-full">
                     <Text className="text-xs font-semibold text-blue-700">
@@ -134,7 +134,7 @@ const NutritionSection = ({ recipeId }) => {
                 <View className="flex-row justify-between items-start mb-2">
                   <Image
                     source={require("../assets/icons/carbs.png")}
-                    style={{ width: 20, height: 16, marginRight: 6 }}
+                    style={{ width: 20, height: 20, marginRight: 6 }}
                   />
                   <View className="bg-orange-100 px-2 py-0.5 rounded-full">
                     <Text className="text-xs font-semibold text-orange-700">
@@ -156,7 +156,7 @@ const NutritionSection = ({ recipeId }) => {
                 <View className="flex-row justify-between items-start mb-2">
                   <Image
                     source={require("../assets/icons/fat.png")}
-                    style={{ width: 20, height: 16, marginRight: 6 }}
+                    style={{ width: 20, height: 20, marginRight: 6 }}
                   />
                   <View className="bg-green-100 px-2 py-0.5 rounded-full">
                     <Text className="text-xs font-semibold text-green-700">
