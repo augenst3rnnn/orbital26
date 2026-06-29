@@ -8,7 +8,12 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 
-export default function RecipeModal({ visible, ingredient, onClose, onSave }) {
+export default function EditIngredientModal({
+  visible,
+  ingredient,
+  onClose,
+  onSave,
+}) {
   if (!ingredient) {
     return null;
   }

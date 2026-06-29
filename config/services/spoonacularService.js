@@ -277,7 +277,7 @@ export const searchIngredientByName = async (ingredientName) => {
   const normalizedName = ingredientName.trim().toLowerCase(); //eg, "Milk" and "milk" cached tgt
 
   try {
-    if (normalizedName) {
+    if (!normalizedName) {
       throw new Error("Ingredient name is required");
     }
 

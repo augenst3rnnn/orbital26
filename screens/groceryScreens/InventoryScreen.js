@@ -8,6 +8,7 @@ import {
   TextInput,
   Pressable,
   FlatList,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockRecipes } from "../../data/mockRecipes";
@@ -17,6 +18,11 @@ import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
 import EditIngredientModal from "../../components/EditIngredientModal";
 import { searchIngredientByName } from "../../config/services/spoonacularService";
+import AddIngredientModal from "../../components/AddIngredientModal";
+import {
+  saveIngredient,
+  getCurrentUserId,
+} from "../../config/firestoreService";
 
 export default function InventoryScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,9 +33,9 @@ export default function InventoryScreen({ navigation }) {
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [showEditOptions, setShowEditOptions] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [ingredientName, setIngredientName] = useState("");
+  /*const [ingredientName, setIngredientName] = useState("");
   const [amount, setAmount] = useState(0);
-  const [unit, setUnit] = useState("");
+  const [unit, setUnit] = useState("");*/
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -91,22 +97,29 @@ export default function InventoryScreen({ navigation }) {
     setShowEditOptions(true);
   };
 
-  const handleAddIngredient = async () => {
-    const ingredientResult = await searchIngredientByName(ingredientName);
+  const handleAddIngredient = async ({ name, amount, unit }) => {
+    try {
+      if (!name.trim()) {
+        Alert.alert("Missing name", "Please enter an ingredient name.");
+        return;
+      }
 
-    await saveIngredient(userId, ingredientResult.id, {
-      name: ingredientResult.name,
-      amount,
-      unit,
-      image: ingredientResult.image,
-      aisle: ingredientResult.aisle,
-    });
+      const userId = getCurrentUserId();
+      const ingredientResult = await searchIngredientByName(name);
 
-    //after saving, clear input
-    setIngredientName = "";
-    setAmount(0);
-    setUnit("");
-    setShowAddModal(false);
+      await saveIngredient(userId, ingredientResult.id, {
+        name: ingredientResult.name,
+        amount: amount || "", //amount & unit are optional
+        unit: unit || "",
+        image: ingredientResult.image,
+        aisle: ingredientResult.aisle,
+      });
+
+      //input collected by AddIngredientModal
+      setShowAddModal(false);
+    } catch (error) {
+      console.error("Error adding ingredient:", error);
+    }
   };
 
   return (
@@ -299,6 +312,13 @@ export default function InventoryScreen({ navigation }) {
       >
         <Text className="text-white text-3xl font-bold">+</Text>
       </TouchableOpacity>
+
+      {/*add ingredient modal popup*/}
+      <AddIngredientModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddIngredient}
+      />
     </View>
   );
 }

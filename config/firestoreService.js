@@ -179,8 +179,8 @@ export const saveIngredient = async (userId, ingredientId, ingredientData) => {
     const newIngredient = {
       id: ingredientId,
       name: ingredientData.name,
-      amount: ingredientData.amount,
-      unit: ingredientData.unit,
+      amount: ingredientData.amount || 0,
+      unit: ingredientData.unit || "",
       image: ingredientData.image || "",
       aisle: ingredientData.aisle || "",
       savedAt: new Date().toISOString(),
