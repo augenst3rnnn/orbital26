@@ -304,7 +304,7 @@ export const searchIngredientByName = async (ingredientName) => {
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
-        `Error fetching ingredient: ${response.status} ${errorText}`
+        `Error fetching ingredient: ${response.status} ${errorText}`,
       );
     }
 
@@ -320,10 +320,7 @@ export const searchIngredientByName = async (ingredientName) => {
     await setCachedData(cacheKey, ingredientData);
 
     return ingredientData;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Error searching ingredient by name:", error);
     throw error;
   }

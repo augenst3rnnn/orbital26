@@ -104,6 +104,7 @@ export const getFavoriteRecipes = async (userId) => {
 {
   /*save a recipe to user's favourites*/
 }
+
 export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -164,6 +165,59 @@ export const getUserProfileWithAuth = async () => {
     return await getUserProfile(userId);
   } catch (error) {
     console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};
+
+{
+  /*save an ingredient to user's inventory*/
+}
+export const saveIngredient = async (userId, ingredientId, ingredientData) => {
+  try {
+    const userRef = doc(db, "users", userId);
+
+    const newIngredient = {
+      id: ingredientId,
+      name: ingredientData.name,
+      amount: ingredientData.amount,
+      unit: ingredientData.unit,
+      image: ingredientData.image || "",
+      aisle: ingredientData.aisle || "",
+      savedAt: new Date().toISOString(),
+    };
+
+    await updateDoc(userRef, {
+      ingredientInventory: arrayUnion(newIngredient),
+    });
+
+    console.log(`Ingredient ${ingredientData.name} saved to inventory`);
+    return { success: true, ingredient: newIngredient };
+  } catch (error) {
+    console.error("Error saving ingredient:", error);
+    throw error;
+  }
+};
+
+{
+  /*delete an ingredient from user's inventory*/
+}
+export const deleteIngredient = async (userId, ingredientId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    //find ingredient with matching ID
+    const userDoc = await getDoc(userRef);
+    const inventory = userDoc.data()?.ingredientInventory || [];
+    const ingToDelete = inventory.find((i) => i.id === ingredientId);
+
+    if (ingToDelete) {
+      await updateDoc(userRef, {
+        inventory: arrayRemove(ingToDelete),
+      });
+      console.log(`${ingToDelete.name} ingredient removed from inventory`);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting ingredient:", error);
     throw error;
   }
 };

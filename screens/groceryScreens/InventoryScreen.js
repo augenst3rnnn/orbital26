@@ -16,6 +16,7 @@ import { mockInventory } from "../../data/mockInventory";
 import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
 import EditIngredientModal from "../../components/EditIngredientModal";
+import { searchIngredientByName } from "../../config/services/spoonacularService";
 
 export default function InventoryScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,6 +27,9 @@ export default function InventoryScreen({ navigation }) {
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [showEditOptions, setShowEditOptions] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [ingredientName, setIngredientName] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [unit, setUnit] = useState("");
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -85,6 +89,24 @@ export default function InventoryScreen({ navigation }) {
   const handleOpenEditModal = (ingredient) => {
     setSelectedIngredient(ingredient);
     setShowEditOptions(true);
+  };
+
+  const handleAddIngredient = async () => {
+    const ingredientResult = await searchIngredientByName(ingredientName);
+
+    await saveIngredient(userId, ingredientResult.id, {
+      name: ingredientResult.name,
+      amount,
+      unit,
+      image: ingredientResult.image,
+      aisle: ingredientResult.aisle,
+    });
+
+    //after saving, clear input
+    setIngredientName = "";
+    setAmount(0);
+    setUnit("");
+    setShowAddModal(false);
   };
 
   return (
@@ -256,7 +278,7 @@ export default function InventoryScreen({ navigation }) {
         <Text className="text-black text-xl">←</Text>
       </TouchableOpacity>
 
-      {/*modal popup*/}
+      {/*edit ingredient modal popup*/}
       <EditIngredientModal
         visible={showEditOptions}
         ingredient={selectedIngredient}
