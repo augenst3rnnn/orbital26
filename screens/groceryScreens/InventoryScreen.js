@@ -25,6 +25,7 @@ export default function InventoryScreen({ navigation }) {
   const [recentSearches, setRecentSearches] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [showEditOptions, setShowEditOptions] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -255,6 +256,7 @@ export default function InventoryScreen({ navigation }) {
         <Text className="text-black text-xl">←</Text>
       </TouchableOpacity>
 
+      {/*modal popup*/}
       <EditIngredientModal
         visible={showEditOptions}
         ingredient={selectedIngredient}
@@ -267,6 +269,14 @@ export default function InventoryScreen({ navigation }) {
           setSelectedIngredient(null);
         }}
       />
+
+      {/*add ingredient to inventory button*/}
+      <TouchableOpacity
+        className="absolute bottom-20 right-10 w-16 h-16 rounded-full bg-yellow-400 shadow-lg flex items-center justify-center"
+        onPress={() => setShowAddModal(true)}
+      >
+        <Text className="text-white text-3xl font-bold">+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
