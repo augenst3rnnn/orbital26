@@ -1,8 +1,7 @@
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState, useEffect } from 'react';
 
-
-{/*placeholder first*/}
 export default function MealPlannerScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">

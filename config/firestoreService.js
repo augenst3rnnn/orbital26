@@ -148,4 +148,105 @@ export const getUserProfileWithAuth = async () => {
         console.error('Error fetching user profile:', error);
         throw error;
     }
-}; 
+};
+
+{/* meal planner functions */}
+export const getMealPlanForWeek = async (userId, weekStart) => {
+    try {
+        const userRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            const allMealPlans = data?.mealPlans || {};
+            
+            const weekDates = getWeekDates(weekStart);
+            const weekPlan = {};
+            weekDates.forEach(date => {
+                if (allMealPlans[date]) {
+                    weekPlan[date] = allMealPlans[date];
+                } else {
+                    weekPlan[date] = { breakfast: null, lunch: null, dinner: null };
+                }
+            });
+            
+            return weekPlan;
+        }
+        return {};
+    } catch (error) {
+        console.error('Error fetching meal plan:', error);
+        return {};
+    }
+};
+
+export const saveMealForDay = async (userId, date, mealType, recipeData) => {
+    try {
+        const userRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userRef);
+        
+        const mealPlans = userDoc.data()?.mealPlans || {};
+        
+        if (!mealPlans[date]) {
+            mealPlans[date] = { breakfast: null, lunch: null, dinner: null };
+        }
+        
+        mealPlans[date][mealType] = {
+            recipeId: recipeData.id,
+            title: recipeData.title,
+            image: recipeData.image || '',
+            calories: recipeData.calories || 0,
+        };
+        
+        await updateDoc(userRef, {
+            mealPlans: mealPlans,
+            updatedAt: new Date().toISOString()
+        });
+        
+        console.log(`${mealType} saved for ${date}`);
+        return { success: true };
+    } catch (error) {
+        console.error('Error saving meal:', error);
+        throw error;
+    }
+};
+
+export const removeMealForDay = async (userId, date, mealType) => {
+    try {
+        const userRef = doc(db, "users", userId);
+        const userDoc = await getDoc(userRef);
+        const mealPlans = userDoc.data()?.mealPlans || {};
+        
+        if (mealPlans[date]) {
+            mealPlans[date][mealType] = null;
+            await updateDoc(userRef, {
+                mealPlans: mealPlans,
+                updatedAt: new Date().toISOString()
+            });
+            console.log(`${mealType} removed for ${date}`);
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error removing meal:', error);
+        throw error;
+    }
+};
+
+//helper functions to get week start date and all dates in the week
+const getWeekStart = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    return d.toISOString().split('T')[0];
+};
+
+const getWeekDates = (weekStart) => {
+    const dates = [];
+    const start = new Date(weekStart);
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        dates.push(d.toISOString().split('T')[0]);
+    }
+    return dates;
+};
