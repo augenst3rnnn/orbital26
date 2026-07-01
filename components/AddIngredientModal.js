@@ -12,7 +12,7 @@ import { BlurView } from "expo-blur";
 
 export default function AddIngredientModal({ visible, onClose, onSave }) {
   const [name, setName] = useState("");
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState("");
 
   const handleSave = () => {
@@ -24,7 +24,7 @@ export default function AddIngredientModal({ visible, onClose, onSave }) {
 
     //clear input after saving
     setName("");
-    setAmount(0);
+    setAmount("");
     setUnit("");
   };
 

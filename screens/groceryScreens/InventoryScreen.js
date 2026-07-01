@@ -22,6 +22,7 @@ import AddIngredientModal from "../../components/AddIngredientModal";
 import {
   saveIngredient,
   getCurrentUserId,
+  getIngredientInventory,
 } from "../../config/firestoreService";
 
 export default function InventoryScreen({ navigation }) {
@@ -33,9 +34,9 @@ export default function InventoryScreen({ navigation }) {
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [showEditOptions, setShowEditOptions] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  /*const [ingredientName, setIngredientName] = useState("");
-  const [amount, setAmount] = useState(0);
-  const [unit, setUnit] = useState("");*/
+  const [inventory, setInventory] = useState([]);
+
+  const userId = getCurrentUserId();
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -66,7 +67,17 @@ export default function InventoryScreen({ navigation }) {
     { label: "V-Z", start: "v", end: "z" },
   ];
 
-  const filteredIngredients = mockInventory.filter((ingredient) => {
+  useEffect(() => {
+    const fetchInventory = async () => {
+      const data = await getIngredientInventory(userId);
+      setInventory(data);
+    };
+    if (userId) {
+      fetchInventory();
+    }
+  }, [userId]);
+
+  const filteredIngredients = inventory.filter((ingredient) => {
     const matchesSearch = ingredient.name
       .toLowerCase()
       .includes(debouncedSearchQuery.toLowerCase());
@@ -78,7 +89,7 @@ export default function InventoryScreen({ navigation }) {
 
   const isSearching = debouncedSearchQuery.trim().length > 0;
 
-  const filterByLetterGroup = mockInventory.filter((ingredient) => {
+  const filterByLetterGroup = inventory.filter((ingredient) => {
     const selectedGroup = letterGroups.find(
       (group) => group.label === selectedLetterGroup,
     );
@@ -104,7 +115,6 @@ export default function InventoryScreen({ navigation }) {
         return;
       }
 
-      const userId = getCurrentUserId();
       const ingredientResult = await searchIngredientByName(name);
 
       await saveIngredient(userId, ingredientResult.id, {

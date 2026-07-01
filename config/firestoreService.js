@@ -221,3 +221,22 @@ export const deleteIngredient = async (userId, ingredientId) => {
     throw error;
   }
 };
+
+{
+  /*get user's ingredient inventory*/
+}
+export const getIngredientInventory = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return data?.ingredientInventory || [];
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching ingredient inventory:", error);
+    return [];
+  }
+};

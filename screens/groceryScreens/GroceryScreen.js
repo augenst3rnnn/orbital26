@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,11 @@ import { useDebounce } from "../../config/hooks/useDebounce";
 import { mockInventory } from "../../data/mockInventory";
 import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
+import {
+  getCurrentUserId,
+  getIngredientInventory,
+  getFavoriteRecipes,
+} from "../../config/firestoreService";
 
 const categories = [
   { name: "Produce", image: require("../../assets/icons/produce.png") },
@@ -49,19 +54,71 @@ const mockIngredients = [
   { id: 4, name: "Milk", category: "Dairy", quantity: "1L" },
 ];
 
+const userId = getCurrentUserId();
+
+const getMissingIngredientsForRecipe = (recipeIngredients, inventory) => {
+  return recipeIngredients.filter((recipeIng) => {
+    const ownedIng = inventory.find(
+      (invIng) => invIng.id === recipeIng.id || invIng.name === recipeIng.name,
+    );
+
+    //user does not own ingredient at all
+    if (!ownedIng) {
+      return true;
+    }
+
+    //user owns ingredient, but insufficient amount
+    const recipeAmount = recipeIng.amount;
+    const ownedAmount = ownedIng.amount;
+
+    return ownedAmount < recipeAmount;
+  });
+};
+
 export default function GroceryScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [inventoryCount, setInventoryCount] = useState(0);
+  const [missingCount, setMissingCount] = useState(0);
 
   // check logic of this
-  const inventoryCount = mockInventory.length;
+  /*const inventoryCount = mockInventory.length;
   const missingCount = mockMissingIngredients.reduce(
     (total, recipe) => total + recipe.ingredients.length,
     0,
-  );
+  );*/
 
   const groceryCount = mockGroceryList.length;
+
+  //fetch inventory count from firestore
+  useEffect(() => {
+    const fetchInventoryCount = async () => {
+      const inventory = await getIngredientInventory(userId);
+      setInventoryCount(inventory.length);
+    };
+
+    if (userId) {
+      fetchInventoryCount();
+    }
+  }, [userId]);
+
+  //fetch missing count from firestore
+  useEffect(() => {
+    const fetchMissingCount = async () => {
+      const inventory = await getIngredientInventory(userId);
+      const favoriteRecipes = await getFavoriteRecipes(userId);
+
+      const missingIngredients = favoriteRecipes.flatMap((recipe) =>
+        getMissingIngredientsForRecipe(recipe.ingredients || [], inventory),
+      );
+      setMissingCount(missingIngredients.length);
+    };
+
+    if (userId) {
+      fetchMissingCount();
+    }
+  }, [userId]);
 
   const groceryCards = [
     {

@@ -111,7 +111,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
             ...recipe,
             instructions: details.instructions,
             extendedIngredients: details.extendedIngredients.map((ing) => ({
-              original: ing,
+              original: ing.original,
             })),
             ingredients:
               details.extendedIngredients.length > 0

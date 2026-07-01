@@ -224,7 +224,16 @@ export const getRecipeDetails = async (recipeId) => {
 
     //extract full ingredients list
     const extendedIngredients =
-      data.extendedIngredients?.map((ing) => ing.original) || [];
+      //data.extendedIngredients?.map((ing) => ing.original) || [];
+      data.extendedIngredients?.map((ing) => ({
+        id: ing.id,
+        name: ing.name,
+        amount: ing.amount,
+        unit: ing.unit,
+        original: ing.original,
+        aisle: ing.aisle || "",
+        image: ing.image || "",
+      })) || [];
 
     // extract instructions
     let instructions = [];
