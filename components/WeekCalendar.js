@@ -35,8 +35,8 @@ export default function WeekCalendar({ weekDates, selectedDate, onSelectDate }) 
                             key={date}
                             onPress={() => onSelectDate(date)}
                             className={`items-center mx-2 px-4 py-2 rounded-xl min-w-[56px] ${
-                                isSelected ? 'bg-yellow-400' : 'bg-gray-100'
-                            } ${today && !isSelected ? 'border-2 border-yellow-400' : ''}`}
+                                isSelected ? 'bg-yellow-200' : 'bg-gray-100'
+                            } ${today && !isSelected ? 'border-2 border-yellow-200' : ''}`}
                         >
                             <Text className={`text-xs font-medium ${
                                 isSelected ? 'text-gray-800' : 'text-gray-500'
