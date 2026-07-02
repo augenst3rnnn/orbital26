@@ -17,11 +17,122 @@ import { mockInventory } from "../../data/mockInventory";
 import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
 import EditIngredientModal from "../../components/EditIngredientModal";
+import useAuth from "../../config/hooks/useAuth";
+import {
+  getFavoriteRecipes,
+  getIngredientInventory,
+} from "../../config/firestoreService";
+import { getMissingIngredientsForRecipe } from "../../config/services/groceryUtils";
 
 export default function MissingIngredientsScreen({ navigation }) {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [favoriteRecipes, setFavoriteRecipes] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
+  //fetch fav recipes from firestore
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const fetchFavoriteRecipes = async () => {
+      const recipes = await getFavoriteRecipes(user.uid);
+      setFavoriteRecipes(recipes);
+    };
+
+    fetchFavoriteRecipes();
+  }, [user?.uid]);
+
+  //fetch inventory itemsfrom firestore
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const fetchInventory = async () => {
+      const inventory = await getIngredientInventory(user.uid);
+      setInventoryItems(inventory);
+    };
+
+    fetchInventory();
+  }, [user?.uid]);
+
+  const recipesWithMissingIngredients = favoriteRecipes.map((recipe) => {
+    const recipeIngredients = recipe.ingredients || [];
+    const missingIngredients = getMissingIngredientsForRecipe(
+      recipeIngredients,
+      inventoryItems,
+    );
+
+    return {
+      ...recipe,
+      missingIngredients, //new property per recipe for missing ingredients
+    };
+  });
+
+  const renderMissingIngredientsCard = ({ item }) => {
+    const missingCount = item.missingIngredients.length;
+    const hasNoMissingIngredients = missingCount === 0;
+
+    return (
+      //create new screen for missing ingredients per recipe
+      <TouchableOpacity
+        onPress={() => {
+          setSelectedRecipe(item);
+        }}
+        className={`border-[1px] rounded-lg shadow pt-2 pb-4 px-2 mb-10 ${
+          hasNoMissingIngredients
+            ? "border-green-400 bg-green-50" //green border if user has all req ingredients
+            : "border-gray-300 bg-gray-50"
+        }`}
+      >
+        {/* recipe title */}
+        <Text className="text-xl font-bold px-2 pt-1 pb-3">{item.title}</Text>
+
+        {/* missing count */}
+        <View
+          className={`rounded-full p-2 w-20 items-center ml-2 mb-2 ${
+            hasNoMissingIngredients ? "bg-green-200" : "bg-purple-200"
+          }`}
+        >
+          <Text
+            className={`text-[10px] ${
+              hasNoMissingIngredients ? "text-green-800" : "text-purple-800"
+            } `}
+          >
+            {hasNoMissingIngredients ? "0 missing" : `${missingCount} missing`}
+          </Text>
+        </View>
+
+        {/* render missing ingredients */}
+        {hasNoMissingIngredients ? (
+          <Text className="text-sm text-green-800 px-2 mt-1">
+            You have all the ingredients for this recipe!
+          </Text>
+        ) : (
+          item.missingIngredients.map((ingredient) => (
+            <View
+              key={ingredient.id}
+              className="flex-row items-center justify-between gap-2 mb-2"
+            >
+              <View className="flex-row items-center gap-3">
+                {/*check button*/}
+                <TouchableOpacity>
+                  <View className="w-5 h-5 rounded-full border border-gray-400" />
+                </TouchableOpacity>
+                <Text className="font-sm">{ingredient.name}</Text>
+              </View>
+
+              <Text className="font-xs text-gray-700 mr-4 pt-3">
+                {ingredient.amount} {ingredient.unit}
+              </Text>
+            </View>
+          ))
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  //UI
   return (
     <View className="flex-1 bg-white">
       {/*yellow header*/}
@@ -48,50 +159,23 @@ export default function MissingIngredientsScreen({ navigation }) {
         </View>
 
         {/*body*/}
-        <ScrollView>
-          <Text className="text-lg font-semibold pl-2 pb-4">
-            From your saved recipes
-          </Text>
-
-          <View className="gap-4 p-2">
-            {mockMissingIngredients.map((recipe) => {
-              return (
-                <View
-                  key={recipe.recipeId}
-                  className="border-[1px] border-gray-300 bg-gray-50 rounded-lg shadow-lg pt-2 pb-4 px-2"
-                >
-                  <Text className="text-xl font-bold px-2 pt-1 pb-3">
-                    {recipe.recipeName}
-                  </Text>
-                  <View className="rounded-full p-2 bg-purple-200 w-20 items-center ml-2 mb-2">
-                    <Text className="text-[10px] text-purple-800">
-                      {recipe.ingredients.length} missing
-                    </Text>
-                  </View>
-
-                  {/*missing ingredients for 1 recipe*/}
-                  {recipe.ingredients.map((ingredient) => (
-                    <View
-                      key={ingredient.id}
-                      className="flex-row items-center justify-between gap-2 mb-2"
-                    >
-                      <View className="flex-row items-center gap-3">
-                        <TouchableOpacity>
-                          <View className="w-5 h-5 rounded-full border border-gray-400" />
-                        </TouchableOpacity>
-                        <Text className="font-sm">{ingredient.name}</Text>
-                      </View>
-
-                      <Text className="font-xs text-gray-700 mr-4 pt-3">
-                        {ingredient.amount} {ingredient.unit}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              );
-            })}
-          </View>
-        </ScrollView>
+        <FlatList
+          data={recipesWithMissingIngredients}
+          keyExtractor={(item) => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          className="p-3 mb-20"
+          renderItem={renderMissingIngredientsCard}
+          ListEmptyComponent={
+            <Text className="text-gray-400 text-center mt-10">
+              No saved recipes found.
+            </Text>
+          }
+          ListHeaderComponent={
+            <Text className="text-lg font-semibold pl-2 pb-4">
+              From your saved recipes
+            </Text>
+          }
+        />
       </View>
 
       {/*back button*/}

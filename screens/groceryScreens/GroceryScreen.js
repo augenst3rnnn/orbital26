@@ -21,6 +21,8 @@ import {
   getIngredientInventory,
   getFavoriteRecipes,
 } from "../../config/firestoreService";
+import useAuth from "../../config/hooks/useAuth";
+import { getMissingIngredientsForRecipe } from "../../config/services/groceryUtils";
 
 const categories = [
   { name: "Produce", image: require("../../assets/icons/produce.png") },
@@ -54,60 +56,37 @@ const mockIngredients = [
   { id: 4, name: "Milk", category: "Dairy", quantity: "1L" },
 ];
 
-const userId = getCurrentUserId();
-
-const getMissingIngredientsForRecipe = (recipeIngredients, inventory) => {
-  return recipeIngredients.filter((recipeIng) => {
-    const ownedIng = inventory.find(
-      (invIng) => invIng.id === recipeIng.id || invIng.name === recipeIng.name,
-    );
-
-    //user does not own ingredient at all
-    if (!ownedIng) {
-      return true;
-    }
-
-    //user owns ingredient, but insufficient amount
-    const recipeAmount = recipeIng.amount;
-    const ownedAmount = ownedIng.amount;
-
-    return ownedAmount < recipeAmount;
-  });
-};
+//const userId = getCurrentUserId();
 
 export default function GroceryScreen({ navigation }) {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [inventoryCount, setInventoryCount] = useState(0);
   const [missingCount, setMissingCount] = useState(0);
 
-  // check logic of this
-  /*const inventoryCount = mockInventory.length;
-  const missingCount = mockMissingIngredients.reduce(
-    (total, recipe) => total + recipe.ingredients.length,
-    0,
-  );*/
-
   const groceryCount = mockGroceryList.length;
 
   //fetch inventory count from firestore
   useEffect(() => {
+    if (!user?.uid) return;
+
     const fetchInventoryCount = async () => {
-      const inventory = await getIngredientInventory(userId);
+      const inventory = await getIngredientInventory(user.uid);
       setInventoryCount(inventory.length);
     };
 
-    if (userId) {
-      fetchInventoryCount();
-    }
-  }, [userId]);
+    fetchInventoryCount();
+  }, [user?.uid]);
 
   //fetch missing count from firestore
   useEffect(() => {
+    if (!user?.uid) return;
+
     const fetchMissingCount = async () => {
-      const inventory = await getIngredientInventory(userId);
-      const favoriteRecipes = await getFavoriteRecipes(userId);
+      const inventory = await getIngredientInventory(user.uid);
+      const favoriteRecipes = await getFavoriteRecipes(user.uid);
 
       const missingIngredients = favoriteRecipes.flatMap((recipe) =>
         getMissingIngredientsForRecipe(recipe.ingredients || [], inventory),
@@ -115,10 +94,8 @@ export default function GroceryScreen({ navigation }) {
       setMissingCount(missingIngredients.length);
     };
 
-    if (userId) {
-      fetchMissingCount();
-    }
-  }, [userId]);
+    fetchMissingCount();
+  }, [user?.uid]);
 
   const groceryCards = [
     {

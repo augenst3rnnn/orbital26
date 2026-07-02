@@ -58,7 +58,6 @@ export default function ExploreRecipeScreen({ navigation }) {
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
 
-      {/* Search bar */}
       <FlatList
         data={filteredRecipes}
         keyExtractor={(item) => item.id.toString()}

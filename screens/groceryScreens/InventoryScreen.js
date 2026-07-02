@@ -24,8 +24,10 @@ import {
   getCurrentUserId,
   getIngredientInventory,
 } from "../../config/firestoreService";
+import useAuth from "../../config/hooks/useAuth";
 
 export default function InventoryScreen({ navigation }) {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedLetterGroup, setSelectedLetterGroup] = useState("A-Z");
@@ -36,7 +38,7 @@ export default function InventoryScreen({ navigation }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [inventory, setInventory] = useState([]);
 
-  const userId = getCurrentUserId();
+  //const userId = getCurrentUserId();
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -68,14 +70,15 @@ export default function InventoryScreen({ navigation }) {
   ];
 
   useEffect(() => {
+    if (!user?.uid) return;
+
     const fetchInventory = async () => {
-      const data = await getIngredientInventory(userId);
+      const data = await getIngredientInventory(user.uid);
       setInventory(data);
     };
-    if (userId) {
-      fetchInventory();
-    }
-  }, [userId]);
+
+    fetchInventory();
+  }, [user?.uid]);
 
   const filteredIngredients = inventory.filter((ingredient) => {
     const matchesSearch = ingredient.name
@@ -117,7 +120,7 @@ export default function InventoryScreen({ navigation }) {
 
       const ingredientResult = await searchIngredientByName(name);
 
-      await saveIngredient(userId, ingredientResult.id, {
+      await saveIngredient(user.uid, ingredientResult.id, {
         name: ingredientResult.name,
         amount: amount || "", //amount & unit are optional
         unit: unit || "",
