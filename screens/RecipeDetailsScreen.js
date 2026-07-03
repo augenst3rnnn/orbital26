@@ -20,6 +20,7 @@ import {
     saveFavoriteRecipe,
     removeFavoriteRecipe
 } from "../config/firestoreService";
+import { saveMealForDay } from "../config/firestoreService";
 import { auth } from "../config/firebase";
 import { mockRecipes } from "../data/mockRecipes";
 
@@ -30,6 +31,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
   const [detailsFetched, setDetailsFetched] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [showMealPlannerOptions, setShowMealPlannerOptions] = useState(false);
 
   useEffect(() => {
       checkFavoriteStatus();
@@ -185,6 +187,33 @@ export default function RecipeDetailsScreen({ route, navigation }) {
   }
 };
 
+  // Handle adding to meal plan
+  const handleAddToMealPlan = (mealType) => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+        Alert.alert('Login Required', 'Please login to save to meal plan');
+        return;
+    }
+
+    const mealRecipe = {
+        id: currentRecipe.id,
+        title: currentRecipe.title,
+        image: currentRecipe.image,
+        calories: currentRecipe.calories || 0,
+    };
+
+    const today = new Date().toISOString().split('T')[0];
+    saveMealForDay(userId, today, mealType.toLowerCase(), mealRecipe)
+        .then(() => {
+            Alert.alert('Success', `Added to ${mealType}!`);
+            setShowMealPlannerOptions(false);
+        })
+        .catch((error) => {
+            console.error('Error adding to meal plan:', error);
+            Alert.alert('Error', 'Failed to add to meal plan');
+        });
+  };
+
   return (
     <ScrollView
       className="flex-1 bg-white"
@@ -287,6 +316,52 @@ export default function RecipeDetailsScreen({ route, navigation }) {
         ) : (
           <Text className="text-gray-400 mb-4">No instructions available</Text>
         )}
+
+        {/* add to today's meal plan button */}
+        <View className="mt-4 mb-2">
+          {!showMealPlannerOptions ? (
+            <TouchableOpacity
+              className="bg-yellow-400 py-3 rounded-xl"
+              onPress={() => setShowMealPlannerOptions(true)}
+            >
+              <Text className="text-center font-semibold text-gray-800">
+              Add to Meal Plan
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <View className="bg-gray-50 rounded-xl p-4">
+              <Text className="text-sm font-semibold text-gray-600 mb-2 text-center">
+                Add to today's meal plan:
+              </Text>
+              <View className="flex-row space-x-2">
+                <TouchableOpacity
+                  className="flex-1 bg-blue-50 py-2.5 rounded-xl border border-blue-200"
+                  onPress={() => handleAddToMealPlan('Breakfast')}
+                >
+                  <Text className="text-center text-blue-700 font-medium">🌅 Breakfast</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-1 bg-orange-50 py-2.5 rounded-xl border border-orange-200"
+                  onPress={() => handleAddToMealPlan('Lunch')}
+                >
+                  <Text className="text-center text-orange-700 font-medium">☀️ Lunch</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-1 bg-purple-50 py-2.5 rounded-xl border border-purple-200"
+                  onPress={() => handleAddToMealPlan('Dinner')}
+                >
+                  <Text className="text-center text-purple-700 font-medium">🌙 Dinner</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                className="mt-2 py-1"
+                onPress={() => setShowMealPlannerOptions(false)}
+              >
+                <Text className="text-center text-gray-400 text-sm">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
 
       <Pressable

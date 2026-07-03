@@ -35,12 +35,7 @@ export default function MealCard({
             />
             <TouchableOpacity onPress={onPress} className="flex-1 ml-3">
                 <Text className="font-semibold text-gray-800">{meal.title}</Text>
-                <View className="flex-row items-center mt-1">
-                    <Text className="text-xs text-gray-400">{meal.calories || 0} kcal</Text>
-                    <Text className={`text-xs ml-3 font-medium ${statusColor}`}>
-                        • {statusText}
-                    </Text>
-                </View>
+        
             </TouchableOpacity>
             
             {!isPast && (

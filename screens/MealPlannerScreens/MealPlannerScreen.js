@@ -160,7 +160,7 @@ export default function MealPlannerScreen({ navigation }) {
     if (loading) {
         return (
             <View className="flex-1 justify-center items-center bg-white">
-                <ActivityIndicator size="large" bg-yellow-200 />
+                <ActivityIndicator size="large" color="#eab308" />
             </View>
         );
     }
@@ -169,8 +169,8 @@ export default function MealPlannerScreen({ navigation }) {
        <View className="flex-1 bg-white">
         {/* yellow header */}
         <View className="bg-yellow-200 pt-20 pb-20 px-6">
-            <Text className="text-2xl font-bold pt-10 text-gray-800">Meal planner</Text>
-            <Text className="text-gray-700 pt-2 text-sm">Plan your week ahead</Text>
+            <Text className="text-3xl font-bold pt-10 text-gray-800">Meal planner</Text>
+            <Text className="text-gray-700 pt-2 text-md">Plan your week ahead</Text>
         </View>
 
         <SafeAreaView className="flex-1 bg-white -mt-10 rounded-t-[40px]">
