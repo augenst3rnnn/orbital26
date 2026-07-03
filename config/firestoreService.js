@@ -201,14 +201,16 @@ export const saveIngredient = async (userId, ingredientId, ingredientData) => {
 {
   /*delete an ingredient from user's inventory*/
 }
-export const deleteIngredient = async (userId, ingredientId) => {
+export const deleteIngredient = async (userId, ingredientToDelete) => {
   try {
     const userRef = doc(db, "users", userId);
-    //find ingredient with matching ID
     const userDoc = await getDoc(userRef);
+
+    /*
     const inventory = userDoc.data()?.ingredientInventory || [];
     const ingToDelete = inventory.find((i) => i.id === ingredientId);
 
+    
     if (ingToDelete) {
       await updateDoc(userRef, {
         inventory: arrayRemove(ingToDelete),
@@ -218,6 +220,25 @@ export const deleteIngredient = async (userId, ingredientId) => {
     return { success: true };
   } catch (error) {
     console.error("Error deleting ingredient:", error);
+    throw error;
+  }*/
+
+    if (!userDoc.exists()) {
+      throw new Error("User document not found");
+    }
+
+    const currentInventory = userDoc.data()?.ingredientInventory || [];
+
+    const updatedInventory = currentInventory.filter((ingredient) => {
+      return ingredient.id !== ingredientToDelete.id;
+    });
+    await updateDoc(userRef, {
+      ingredientInventory: updatedInventory,
+    });
+
+    return updatedInventory;
+  } catch (error) {
+    console.log("Error deleting ingredient:", error);
     throw error;
   }
 };

@@ -23,6 +23,7 @@ import {
   saveIngredient,
   getCurrentUserId,
   getIngredientInventory,
+  deleteIngredient,
 } from "../../config/firestoreService";
 import useAuth from "../../config/hooks/useAuth";
 
@@ -37,8 +38,6 @@ export default function InventoryScreen({ navigation }) {
   const [showEditOptions, setShowEditOptions] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [inventory, setInventory] = useState([]);
-
-  //const userId = getCurrentUserId();
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -315,6 +314,22 @@ export default function InventoryScreen({ navigation }) {
         onSave={() => {
           setShowEditOptions(false);
           setSelectedIngredient(null);
+        }}
+        onDelete={async (ingredientToDelete) => {
+          try {
+            const updatedInventory = await deleteIngredient(
+              user.uid,
+              ingredientToDelete,
+            );
+
+            setInventory(updatedInventory);
+
+            setShowEditOptions(false);
+            setSelectedIngredient(null);
+          } catch (error) {
+            console.log("Error deleting ingredient from screen:", error);
+            Alert.alert("Error", "Could not delete ingredient.");
+          }
         }}
       />
 

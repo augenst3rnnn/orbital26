@@ -171,7 +171,7 @@ export default function MissingIngredientsScreen({ navigation }) {
             </Text>
           }
           ListHeaderComponent={
-            <Text className="text-lg font-semibold pl-2 pb-4">
+            <Text className="text-xl font-semibold pl-2 pb-8">
               From your saved recipes
             </Text>
           }

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -69,7 +70,7 @@ export default function GroceryScreen({ navigation }) {
   const groceryCount = mockGroceryList.length;
 
   //fetch inventory count from firestore
-  useEffect(() => {
+  /*useEffect(() => {
     if (!user?.uid) return;
 
     const fetchInventoryCount = async () => {
@@ -78,24 +79,38 @@ export default function GroceryScreen({ navigation }) {
     };
 
     fetchInventoryCount();
-  }, [user?.uid]);
+  }, [user?.uid]);*/
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.uid) return;
+
+      const fetchInventoryCount = async () => {
+        const inventory = await getIngredientInventory(user.uid);
+        setInventoryCount(inventory.length);
+      };
+
+      fetchInventoryCount();
+    }, [user?.uid]),
+  );
 
   //fetch missing count from firestore
-  useEffect(() => {
-    if (!user?.uid) return;
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.uid) return;
 
-    const fetchMissingCount = async () => {
-      const inventory = await getIngredientInventory(user.uid);
-      const favoriteRecipes = await getFavoriteRecipes(user.uid);
+      const fetchMissingCount = async () => {
+        const inventory = await getIngredientInventory(user.uid);
+        const favoriteRecipes = await getFavoriteRecipes(user.uid);
 
-      const missingIngredients = favoriteRecipes.flatMap((recipe) =>
-        getMissingIngredientsForRecipe(recipe.ingredients || [], inventory),
-      );
-      setMissingCount(missingIngredients.length);
-    };
+        const missingIngredients = favoriteRecipes.flatMap((recipe) =>
+          getMissingIngredientsForRecipe(recipe.ingredients || [], inventory),
+        );
+        setMissingCount(missingIngredients.length);
+      };
 
-    fetchMissingCount();
-  }, [user?.uid]);
+      fetchMissingCount();
+    }, [user?.uid]),
+  );
 
   const groceryCards = [
     {
