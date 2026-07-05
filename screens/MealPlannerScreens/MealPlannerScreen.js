@@ -147,10 +147,14 @@ export default function MealPlannerScreen({ navigation }) {
     
     const weekGlance = weekDates.map(date => {
         const plan = mealPlan[date] || {};
-        const hasMeals = plan.breakfast || plan.lunch || plan.dinner;
+        // Check if all three meals exist (breakfast, lunch, and dinner)
+        const hasAllMeals = !!(plan.breakfast && plan.lunch && plan.dinner);
+        // Check if any meal exists (for partial completion)
+        const hasAnyMeals = !!(plan.breakfast || plan.lunch || plan.dinner);
         return {
             date,
-            hasMeals: !!hasMeals,
+            hasAllMeals: hasAllMeals,
+            hasAnyMeals: hasAnyMeals,
             isToday: isToday(date)
         };
     });
@@ -166,132 +170,134 @@ export default function MealPlannerScreen({ navigation }) {
     }
     
     return (
-       <View className="flex-1 bg-white">
-        {/* yellow header */}
-        <View className="bg-yellow-200 pt-20 pb-20 px-6">
-            <Text className="text-3xl font-bold pt-10 text-gray-800">Meal planner</Text>
-            <Text className="text-gray-700 pt-2 text-md">Plan your week ahead</Text>
-        </View>
+        <View className="flex-1 bg-white">
+            {/* yellow header */}
+            <View className="bg-yellow-200 pt-20 pb-20 px-6">
+                <Text className="text-3xl font-bold pt-10 text-gray-800">Meal planner</Text>
+                <Text className="text-gray-700 pt-2 text-md">Plan your week ahead</Text>
+            </View>
 
-        <SafeAreaView className="flex-1 bg-white -mt-10 rounded-t-[40px]">
-            <ScrollView
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-            >   
-                {/* week calendar*/}
-                <WeekCalendar
-                    weekDates={weekDates}
-                    selectedDate={selectedDate}
-                    onSelectDate={setSelectedDate}
-                />
-                
-                {/* day content */}
-                <View className="px-4 pt-2 pb-8 bg-gray-50">
-                    {/* date label */}
-                    <Text className="text-lg font-bold text-gray-800">
-                        {getDateLabel()}
-                    </Text>
-                    {/* past day warning - cannot add meals for days that have passed */}
-                    {isPast && (
-                        <View className="bg-gray-100 rounded-xl p-4 mt-3 items-center">
-                            <Text className="text-gray-500 text-center text-sm">
-                                Past days are view-only. You can't edit or add meals.
-                            </Text>
-                        </View>
-                    )}
-                    
-                    {/* breakfast */}
-                    <Text className="text-md font-bold text-gray-400 mt-4 mb-2 tracking-wider">Breakfast</Text>
-                    <MealCard
-                        meal={dayMeals.breakfast}
-                        mealType="Breakfast"
-                        onPress={() => {
-                            if (dayMeals.breakfast) {
-                                navigation.navigate('RecipeDetails', { 
-                                    recipe: dayMeals.breakfast 
-                                });
-                            }
-                        }}
-                        onAdd={() => handleAddMeal('Breakfast')}
-                        onRemove={() => handleRemoveMeal('Breakfast', dayMeals.breakfast?.title)}
-                        isPast={isPast}
+            <SafeAreaView className="flex-1 bg-white -mt-10 rounded-t-[40px]">
+                <ScrollView
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                >   
+                    {/* week calendar*/}
+                    <WeekCalendar
+                        weekDates={weekDates}
+                        selectedDate={selectedDate}
+                        onSelectDate={setSelectedDate}
                     />
                     
-                    {/* lunch */}
-                    <Text className="text-md font-bold text-gray-400 mt-2 mb-2 tracking-wider">Lunch</Text>
-                    <MealCard
-                        meal={dayMeals.lunch}
-                        mealType="Lunch"
-                        onPress={() => {
-                            if (dayMeals.lunch) {
-                                navigation.navigate('RecipeDetails', { 
-                                    recipe: dayMeals.lunch 
-                                });
-                            }
-                        }}
-                        onAdd={() => handleAddMeal('Lunch')}
-                        onRemove={() => handleRemoveMeal('Lunch', dayMeals.lunch?.title)}
-                        isPast={isPast}
-                    />
-                    
-                    {/* dinner */}
-                    <Text className="text-md font-bold text-gray-400 mt-2 mb-2 tracking-wider">Dinner</Text>
-                    <MealCard
-                        meal={dayMeals.dinner}
-                        mealType="Dinner"
-                        onPress={() => {
-                            if (dayMeals.dinner) {
-                                navigation.navigate('RecipeDetails', { 
-                                    recipe: dayMeals.dinner 
-                                });
-                            }
-                        }}
-                        onAdd={() => handleAddMeal('Dinner')}
-                        onRemove={() => handleRemoveMeal('Dinner', dayMeals.dinner?.title)}
-                        isPast={isPast}
-                    />
-                    
-                    {/* missing ingredients */}
-                    <TouchableOpacity 
-                        className="bg-yellow-50 rounded-xl p-4 mt-4 flex-row justify-between items-center border border-yellow-100"
-                        onPress={() => {
-                            console.log('Navigate to grocery list with missing items');
-                        }}
-                    >
-                        <Text className="text-gray-700 font-semibold">
-                            {missingItemsCount} items missing this week
+                    {/* day content */}
+                    <View className="px-4 pt-2 pb-8 bg-gray-50">
+                        {/* date label */}
+                        <Text className="text-lg font-bold text-gray-800">
+                            {getDateLabel()}
                         </Text>
-                        <Text className="text-yellow-600 font-medium">Tap to add →</Text>
-                    </TouchableOpacity>
-                    
-                    {/* week at a glance */}
-                    <View className="mt-5">
-                        <Text className="text-md font-semibold text-gray-400 mb-3 tracking-wider">Week at a glance</Text>
-                        <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                            <View className="flex-row justify-around">
-                                {weekGlance.map((day, index) => (
-                                    <View key={day.date} className="items-center">
-                                        <Text className={`text-xs font-medium ${
-                                            day.isToday ? 'text-yellow-400' : 'text-gray-400'
-                                        }`}>
-                                            {['M','T','W','T','F','S','S'][index]}
-                                        </Text>
-                                        <View className={`w-8 h-8 rounded-full mt-1 items-center justify-center ${
-                                            day.hasMeals ? 'bg-green-100' : 'bg-gray-100'
-                                        } ${day.isToday ? 'border-2 border-yellow-200' : ''}`}>
-                                            {day.hasMeals && (
-                                                <Text className="text-green-600 text-xs">✓</Text>
-                                            )}
+                        {/* past day warning - cannot add meals for days that have passed */}
+                        {isPast && (
+                            <View className="bg-gray-100 rounded-xl p-4 mt-3 items-center">
+                                <Text className="text-gray-500 text-center text-sm">
+                                    Past days are view-only. You can't edit or add meals.
+                                </Text>
+                            </View>
+                        )}
+                        
+                        {/* breakfast */}
+                        <Text className="text-md font-bold text-gray-400 mt-4 mb-2 tracking-wider">Breakfast</Text>
+                        <MealCard
+                            meal={dayMeals.breakfast}
+                            mealType="Breakfast"
+                            onPress={() => {
+                                if (dayMeals.breakfast) {
+                                    navigation.navigate('RecipeDetails', { 
+                                        recipe: dayMeals.breakfast 
+                                    });
+                                }
+                            }}
+                            onAdd={() => handleAddMeal('Breakfast')}
+                            onRemove={() => handleRemoveMeal('Breakfast', dayMeals.breakfast?.title)}
+                            isPast={isPast}
+                        />
+                        
+                        {/* lunch */}
+                        <Text className="text-md font-bold text-gray-400 mt-2 mb-2 tracking-wider">Lunch</Text>
+                        <MealCard
+                            meal={dayMeals.lunch}
+                            mealType="Lunch"
+                            onPress={() => {
+                                if (dayMeals.lunch) {
+                                    navigation.navigate('RecipeDetails', { 
+                                        recipe: dayMeals.lunch 
+                                    });
+                                }
+                            }}
+                            onAdd={() => handleAddMeal('Lunch')}
+                            onRemove={() => handleRemoveMeal('Lunch', dayMeals.lunch?.title)}
+                            isPast={isPast}
+                        />
+                        
+                        {/* dinner */}
+                        <Text className="text-md font-bold text-gray-400 mt-2 mb-2 tracking-wider">Dinner</Text>
+                        <MealCard
+                            meal={dayMeals.dinner}
+                            mealType="Dinner"
+                            onPress={() => {
+                                if (dayMeals.dinner) {
+                                    navigation.navigate('RecipeDetails', { 
+                                        recipe: dayMeals.dinner 
+                                    });
+                                }
+                            }}
+                            onAdd={() => handleAddMeal('Dinner')}
+                            onRemove={() => handleRemoveMeal('Dinner', dayMeals.dinner?.title)}
+                            isPast={isPast}
+                        />
+                        
+                        {/* missing ingredients */}
+                        <TouchableOpacity 
+                            className="bg-yellow-50 rounded-xl p-4 mt-4 flex-row justify-between items-center border border-yellow-100"
+                            onPress={() => {
+                                console.log('Navigate to grocery list with missing items');
+                            }}
+                        >
+                            <Text className="text-gray-700 font-semibold">
+                                {missingItemsCount} items missing this week
+                            </Text>
+                            <Text className="text-yellow-600 font-medium">Tap to add →</Text>
+                        </TouchableOpacity>
+                        
+                        {/* week at a glance */}
+                        <View className="mt-5">
+                            <Text className="text-md font-semibold text-gray-400 mb-3 tracking-wider">Week at a glance</Text>
+                            <View className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                                <View className="flex-row justify-around">
+                                    {weekGlance.map((day, index) => (
+                                        <View key={day.date} className="items-center">
+                                            <Text className={`text-xs font-medium ${
+                                                day.isToday ? 'text-yellow-400' : 'text-gray-400'
+                                            }`}>
+                                                {['M','T','W','T','F','S','S'][index]}
+                                            </Text>
+                                            <View className={`w-8 h-8 rounded-full mt-1 items-center justify-center ${
+                                                day.hasAllMeals ? 'bg-green-100' : day.hasAnyMeals ? 'bg-yellow-100' : 'bg-gray-100'
+                                            } ${day.isToday ? 'border-2 border-yellow-200' : ''}`}>
+                                                {day.hasAllMeals ? (
+                                                    <Text className="text-green-600 text-xs">✓</Text>
+                                                ) : day.hasAnyMeals ? (
+                                                    <Text className="text-yellow-600 text-xs">~</Text>
+                                                ) : null}
+                                            </View>
                                         </View>
-                                    </View>
-                                ))}
+                                    ))}
+                                </View>
                             </View>
                         </View>
                     </View>
-                </View>
-            </ScrollView>
-        </SafeAreaView>
-    </View>
+                </ScrollView>
+            </SafeAreaView>
+        </View>
     );
 }
