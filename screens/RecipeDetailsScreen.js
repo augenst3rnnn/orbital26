@@ -318,46 +318,46 @@ export default function RecipeDetailsScreen({ route, navigation }) {
         )}
 
         {/* add to today's meal plan button */}
-        <View className="mt-4 mb-2">
+        <View className="mt-6 mb-2">
           {!showMealPlannerOptions ? (
             <TouchableOpacity
-              className="bg-yellow-400 py-3 rounded-xl"
+              className="bg-yellow-300 py-3 rounded-xl mr-10 ml-10 shadow"
               onPress={() => setShowMealPlannerOptions(true)}
             >
-              <Text className="text-center font-semibold text-gray-800">
+              <Text className="text-center font-semibold text-gray-600">
               Add to Meal Plan
               </Text>
             </TouchableOpacity>
           ) : (
             <View className="bg-gray-50 rounded-xl p-4">
               <Text className="text-sm font-semibold text-gray-600 mb-2 text-center">
-                Add to today's meal plan:
+                Add to today's meal plan
               </Text>
               <View className="flex-row space-x-2">
                 <TouchableOpacity
-                  className="flex-1 bg-blue-50 py-2.5 rounded-xl border border-blue-200"
+                  className="flex-1  py-2.5 rounded-xl bg-yellow-300"
                   onPress={() => handleAddToMealPlan('Breakfast')}
                 >
-                  <Text className="text-center text-blue-700 font-medium">Breakfast</Text>
+                  <Text className="text-center font-medium">Breakfast</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 bg-orange-50 py-2.5 rounded-xl border border-orange-200"
+                  className="flex-1 py-2.5 rounded-xl bg-yellow-300"
                   onPress={() => handleAddToMealPlan('Lunch')}
                 >
-                  <Text className="text-center text-orange-700 font-medium">Lunch</Text>
+                  <Text className="text-center font-medium">Lunch</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="flex-1 bg-purple-50 py-2.5 rounded-xl border border-purple-200"
+                  className="flex-1 bg-yellow-300 py-2.5 rounded-xl"
                   onPress={() => handleAddToMealPlan('Dinner')}
                 >
-                  <Text className="text-center text-purple-700 font-medium">Dinner</Text>
+                  <Text className="text-center font-medium">Dinner</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
                 className="mt-2 py-1"
                 onPress={() => setShowMealPlannerOptions(false)}
               >
-                <Text className="text-center text-gray-400 text-sm">Cancel</Text>
+                <Text className="text-center text-gray-700 text-sm border-gray-300 rounded-lg">Cancel</Text>
               </TouchableOpacity>
             </View>
           )}

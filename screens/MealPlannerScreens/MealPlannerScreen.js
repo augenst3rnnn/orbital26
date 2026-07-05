@@ -109,8 +109,14 @@ export default function MealPlannerScreen({ navigation }) {
             date: selectedDate, 
             mealType: mealType,
             onSelect: (recipe) => {
-                saveMealForDay(userId, selectedDate, mealType.toLowerCase(), recipe);
-                fetchWeekPlan();
+                saveMealForDay(userId, selectedDate, mealType.toLowerCase(), recipe)
+                    .then(() => {
+                        fetchWeekPlan();
+                    })
+                    .catch((error) => {
+                        console.error('Error saving meal:', error);
+                        Alert.alert('Error', 'Failed to save meal');
+                    });
             }
         });
     };
