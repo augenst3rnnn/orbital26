@@ -1,6 +1,17 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React from 'react';
 
+//helper function to handle both image types
+const getImageSource = (image) => {
+    if (!image) {
+        return require('../assets/icons/avatar.png'); //fallback image
+    }
+    if (typeof image === 'string') {
+        return { uri: image }; //api images uses URL string
+    }
+    return image; // mock recipe images uses require()
+};
+
 export default function MealCard({ 
     meal, 
     mealType, 
@@ -30,12 +41,13 @@ export default function MealCard({
     return (
         <View className="bg-white rounded-xl p-3 mb-3 shadow-sm border border-gray-100 flex-row items-center">
             <Image
-                source={{ uri: meal.image || 'https://via.placeholder.com/50/FFD700' }}
+                source={getImageSource(meal.image)}
                 style={{ width: 50, height: 50, borderRadius: 10 }}
+                resizeMode="cover"
             />
             <TouchableOpacity onPress={onPress} className="flex-1 ml-3">
                 <Text className="font-semibold text-gray-800">{meal.title}</Text>
-        
+                    
             </TouchableOpacity>
             
             {!isPast && (

@@ -338,19 +338,19 @@ export default function RecipeDetailsScreen({ route, navigation }) {
                   className="flex-1 bg-blue-50 py-2.5 rounded-xl border border-blue-200"
                   onPress={() => handleAddToMealPlan('Breakfast')}
                 >
-                  <Text className="text-center text-blue-700 font-medium">🌅 Breakfast</Text>
+                  <Text className="text-center text-blue-700 font-medium">Breakfast</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="flex-1 bg-orange-50 py-2.5 rounded-xl border border-orange-200"
                   onPress={() => handleAddToMealPlan('Lunch')}
                 >
-                  <Text className="text-center text-orange-700 font-medium">☀️ Lunch</Text>
+                  <Text className="text-center text-orange-700 font-medium">Lunch</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="flex-1 bg-purple-50 py-2.5 rounded-xl border border-purple-200"
                   onPress={() => handleAddToMealPlan('Dinner')}
                 >
-                  <Text className="text-center text-purple-700 font-medium">🌙 Dinner</Text>
+                  <Text className="text-center text-purple-700 font-medium">Dinner</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity

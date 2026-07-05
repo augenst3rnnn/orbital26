@@ -74,7 +74,6 @@ export default function AddMealScreen({ route, navigation }) {
     };
     
     const navigateToHome = () => {
-        // Close modal and navigate to Home with params
         navigation.goBack();
         navigation.navigate('bottomTabs', { 
             screen: 'Home', 
@@ -106,21 +105,35 @@ export default function AddMealScreen({ route, navigation }) {
             </Text>
             
             <TouchableOpacity 
-                className="bg-gray-50 rounded-xl p-5 mb-4 border border-gray-100"
+                className="bg-gray-50 rounded-xl p-5 mb-4 border border-gray-100 flex-row items-center"
                 onPress={navigateToHome}
                 activeOpacity={0.7}
             >
-                <Text className="text-lg font-semibold text-gray-800">Search recipes</Text>
-                <Text className="text-sm text-gray-500">Browse Spoonacular by ingredient or name</Text>
+                <Image
+                    source={require('../../assets/icons/search.png')}
+                    style={{ width: 24, height: 24, marginRight: 12 }}
+                    resizeMode="contain"
+                />
+                <View>
+                    <Text className="text-lg font-semibold text-gray-800">Search recipes</Text>
+                    <Text className="text-sm text-gray-500">Browse Spoonacular by ingredient or name</Text>
+                </View>
             </TouchableOpacity>
             
             <TouchableOpacity 
-                className="bg-gray-50 rounded-xl p-5 border border-gray-100"
+                className="bg-gray-50 rounded-xl p-5 border border-gray-100 flex-row items-center"
                 onPress={() => setShowFavorites(true)}
                 activeOpacity={0.7}
             >
-                <Text className="text-lg font-semibold text-gray-800">From my favorites</Text>
-                <Text className="text-sm text-gray-500">Pick from your saved recipes</Text>
+                <Image
+                    source={require('../../assets/icons/favourites.png')}
+                    style={{ width: 24, height: 24, marginRight: 12 }}
+                    resizeMode="contain"
+                />
+                <View>
+                    <Text className="text-lg font-semibold text-gray-800">From my favorites</Text>
+                    <Text className="text-sm text-gray-500">Pick from your saved recipes</Text>
+                </View>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -142,7 +155,7 @@ export default function AddMealScreen({ route, navigation }) {
                 setShowFavorites(false);
                 setSearchQuery('');
             }} className="mb-4">
-                <Text className="text-gray-600 text-lg">←</Text>
+                <Text className="text-gray-600 text-lg">← Back</Text>
             </TouchableOpacity>
             
             <Text className="text-xl font-bold text-gray-800 mb-1">
@@ -153,6 +166,10 @@ export default function AddMealScreen({ route, navigation }) {
             </Text>
             
             <View className="bg-gray-100 rounded-xl px-4 py-2 flex-row items-center mb-4">
+                <Image
+                    source={require('../../assets/icons/search.png')}
+                    style={{ width: 20, height: 20, marginRight: 8 }}
+                />
                 <TextInput
                     placeholder="Search your favorites..."
                     value={searchQuery}
@@ -176,9 +193,15 @@ export default function AddMealScreen({ route, navigation }) {
                             onPress={() => handleSelectFavorite(item)}
                             activeOpacity={0.7}
                         >
+                            {/* FIXED: Handle both image types */}
                             <Image
-                                source={{ uri: item.image || 'https://via.placeholder.com/50/FFD700' }}
+                                source={
+                                    typeof item.image === 'string' 
+                                        ? { uri: item.image } 
+                                        : item.image || require('../../assets/icons/avatar.png')
+                                }
                                 style={{ width: 50, height: 50, borderRadius: 10 }}
+                                resizeMode="cover"
                             />
                             <View className="flex-1 ml-3">
                                 <Text className="font-semibold text-gray-800">{item.title}</Text>

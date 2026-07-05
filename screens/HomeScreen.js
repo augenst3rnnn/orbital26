@@ -1,5 +1,3 @@
-// screens/HomeScreen.js
-
 import {
   View,
   Text,
