@@ -16,9 +16,9 @@ import {
 import NutritionSection from "../components/NutritionSection";
 import { getRecipeDetails } from "../config/services/spoonacularService";
 import {
-    getFavoriteRecipes,
-    saveFavoriteRecipe,
-    removeFavoriteRecipe
+  getFavoriteRecipes,
+  saveFavoriteRecipe,
+  removeFavoriteRecipe,
 } from "../config/firestoreService";
 import { auth } from "../config/firebase";
 import { mockRecipes } from "../data/mockRecipes";
@@ -32,26 +32,30 @@ export default function RecipeDetailsScreen({ route, navigation }) {
   const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   useEffect(() => {
-      checkFavoriteStatus();
+    checkFavoriteStatus();
   }, []);
 
   const checkFavoriteStatus = async () => {
-      try {
-          const userId = auth.currentUser?.uid;
-          if (!userId) return;
-          
-          const favorites = await getFavoriteRecipes(userId);
-          const exists = favorites.some(fav => fav.id === recipe.id);
-          setIsFavorite(exists);
-      } catch (error) {
-          console.error('Error checking favorite:', error);
-      }
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      const favorites = await getFavoriteRecipes(userId);
+      const exists = favorites.some((fav) => fav.id === recipe.id);
+      setIsFavorite(exists);
+    } catch (error) {
+      console.error("Error checking favorite:", error);
+    }
   };
 
   useEffect(() => {
     const fetchDetails = async () => {
       //check if the recipe is a mock recipe with full data from firestore
-      if (recipe.id <= 8 && recipe.ingredients && recipe.ingredients.length > 0) {
+      if (
+        recipe.id <= 8 &&
+        recipe.ingredients &&
+        recipe.ingredients.length > 0
+      ) {
         setEnrichedRecipe({
           ...recipe,
           extendedIngredients: recipe.ingredients.map((ing) => ({
@@ -64,7 +68,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
 
       // fallback: if mock recipe but missing data, use mockRecipes file
       if (recipe.id <= 8) {
-        const mockRecipe = mockRecipes.find(r => r.id === recipe.id);
+        const mockRecipe = mockRecipes.find((r) => r.id === recipe.id);
         if (mockRecipe) {
           setEnrichedRecipe({
             ...recipe,
@@ -107,7 +111,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
             ...recipe,
             instructions: details.instructions,
             extendedIngredients: details.extendedIngredients.map((ing) => ({
-              original: ing,
+              original: ing.original,
             })),
             ingredients:
               details.extendedIngredients.length > 0
@@ -144,46 +148,49 @@ export default function RecipeDetailsScreen({ route, navigation }) {
   };
 
   const handleToggleFavorite = async () => {
-  try {
-    const userId = auth.currentUser?.uid;
-    if (!userId) {
-      Alert.alert('Login Required', 'Please login to save favorites');
-      return;
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
+        Alert.alert("Login Required", "Please login to save favorites");
+        return;
+      }
+
+      setFavoriteLoading(true);
+
+      const isMockRecipe = currentRecipe?.id && currentRecipe.id <= 8;
+
+      if (isFavorite) {
+        await removeFavoriteRecipe(userId, currentRecipe.id);
+        setIsFavorite(false);
+        Alert.alert("Removed", "Recipe removed from favorites");
+      } else {
+        const recipeDetails = await getRecipeDetails(currentRecipe.id);
+
+        await saveFavoriteRecipe(userId, currentRecipe.id, {
+          id: currentRecipe.id,
+          title: currentRecipe.title,
+          image: currentRecipe.image,
+          summary: recipeDetails.summary || currentRecipe.summary || "",
+          ingredients: recipeDetails.extendedIngredients || [],
+          instructions: recipeDetails.instructions || [],
+          readyInMinutes:
+            recipeDetails.readyInMinutes || currentRecipe.readyInMinutes || 20,
+          servings: recipeDetails.servings || currentRecipe.servings || 2,
+          likes: currentRecipe.likes || 0,
+
+          isMock: isMockRecipe,
+          savedAt: new Date().toISOString(),
+        });
+        setIsFavorite(true);
+        Alert.alert("Saved", "Recipe added to favorites!");
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      Alert.alert("Error", "Failed to update favorites");
+    } finally {
+      setFavoriteLoading(false);
     }
-
-    setFavoriteLoading(true);
-
-    const isMockRecipe = currentRecipe?.id && currentRecipe.id <= 8;
-
-    if (isFavorite) {
-      await removeFavoriteRecipe(userId, currentRecipe.id);
-      setIsFavorite(false);
-      Alert.alert('Removed', 'Recipe removed from favorites');
-    } else {
-      await saveFavoriteRecipe(userId, currentRecipe.id, {
-        id: currentRecipe.id,
-        title: currentRecipe.title,
-        image: currentRecipe.image,
-        //full data for mock recipes
-        summary: isMockRecipe ? currentRecipe.summary || '' : '',
-        ingredients: isMockRecipe ? currentRecipe.ingredients || [] : [],
-        instructions: isMockRecipe ? currentRecipe.instructions || [] : [],
-        readyInMinutes: isMockRecipe ? currentRecipe.readyInMinutes || 20 : 20,
-        servings: isMockRecipe ? currentRecipe.servings || 2 : 2,
-        likes: isMockRecipe ? currentRecipe.likes || 0 : 0,
-        isMock: isMockRecipe,
-        savedAt: new Date().toISOString()
-      });
-      setIsFavorite(true);
-      Alert.alert('Saved', 'Recipe added to favorites!');
-    }
-  } catch (error) {
-    console.error('Error toggling favorite:', error);
-    Alert.alert('Error', 'Failed to update favorites');
-  } finally {
-    setFavoriteLoading(false);
-  }
-};
+  };
 
   return (
     <ScrollView
@@ -206,24 +213,25 @@ export default function RecipeDetailsScreen({ route, navigation }) {
           <Text className="text-3xl font-bold flex-1">
             {currentRecipe.title}
           </Text>
-          
+
           <TouchableOpacity
-          onPress={handleToggleFavorite}
-          disabled={favoriteLoading}
-          className="p-2"
+            onPress={handleToggleFavorite}
+            disabled={favoriteLoading}
+            className="p-2"
           >
-          {favoriteLoading ? (
-            <ActivityIndicator size="small" color="#eab308" />
+            {favoriteLoading ? (
+              <ActivityIndicator size="small" color="#eab308" />
             ) : (
-            <Image source={
-                isFavorite 
-                    ? require("../assets/icons/heart.png") 
+              <Image
+                source={
+                  isFavorite
+                    ? require("../assets/icons/heart.png")
                     : require("../assets/icons/heart-unfilled.png")
-            }
-            style={{ width: 28, height: 28 }}
-            resizeMode="contain"
-          />
-          )}
+                }
+                style={{ width: 28, height: 28 }}
+                resizeMode="contain"
+              />
+            )}
           </TouchableOpacity>
         </View>
 

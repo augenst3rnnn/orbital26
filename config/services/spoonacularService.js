@@ -30,12 +30,12 @@ export const searchRecipesByIngredients = async (
     const cachedData = await getCachedData(cacheKey);
 
     if (cachedData) {
-      console.log("Using cached recipes for ${cacheKey}");
+      console.log(`Using cached recipes for ${cacheKey}`);
       return cachedData;
     }
 
     const ingredientsString = normalizedIngredients.join(",");
-    console.log("Fetching recipes for ${ingredientsString} from API");
+    console.log(`Fetching recipes for ${ingredientsString} from API`);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -184,8 +184,9 @@ export const getRecipeDetails = async (recipeId) => {
 
       if (mockRecipe) {
         return {
+          ...mockRecipe,
           instructions: mockRecipe.instructions || [],
-          extendedIngredients: mockRecipe.ingredients || [],
+          extendedIngredients: mockRecipe.ingredients || [], //follow same shape as real API
         };
       }
     }
@@ -223,7 +224,16 @@ export const getRecipeDetails = async (recipeId) => {
 
     //extract full ingredients list
     const extendedIngredients =
-      data.extendedIngredients?.map((ing) => ing.original) || [];
+      //data.extendedIngredients?.map((ing) => ing.original) || [];
+      data.extendedIngredients?.map((ing) => ({
+        id: ing.id,
+        name: ing.name,
+        amount: ing.amount,
+        unit: ing.unit,
+        original: ing.original,
+        aisle: ing.aisle || "",
+        image: ing.image || "",
+      })) || [];
 
     // extract instructions
     let instructions = [];
@@ -269,5 +279,58 @@ export const getRecipeDetails = async (recipeId) => {
       instructions: ["Could not load instructions."],
       extendedIngredients: [],
     };
+  }
+};
+
+export const searchIngredientByName = async (ingredientName) => {
+  const normalizedName = ingredientName.trim().toLowerCase(); //eg, "Milk" and "milk" cached tgt
+
+  try {
+    if (!normalizedName) {
+      throw new Error("Ingredient name is required");
+    }
+
+    const cacheKey = `ingredientName_${normalizedName}`;
+    const cachedData = await getCachedData(cacheKey);
+
+    if (cachedData) {
+      console.log("Using cached ingredient:", normalizedName);
+      return cachedData;
+    }
+
+    console.log(`Fetching ingredient data for ${normalizedName} from API`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(
+      `https://api.spoonacular.com/food/ingredients/search?query=${encodeURIComponent(normalizedName)}&number=1&apiKey=${SPOONACULAR_API_KEY}`,
+      { signal: controller.signal },
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error fetching ingredient: ${response.status} ${errorText}`,
+      );
+    }
+
+    const data = await response.json();
+
+    if (!data.results || data.results.length === 0) {
+      throw new Error("No ingredient found");
+    }
+
+    //data.results is an array of length 1 (bc number = 1)
+    const ingredientData = data.results[0];
+
+    await setCachedData(cacheKey, ingredientData);
+
+    return ingredientData;
+  } catch (error) {
+    console.error("Error searching ingredient by name:", error);
+    throw error;
   }
 };

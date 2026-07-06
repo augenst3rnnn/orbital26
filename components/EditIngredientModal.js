@@ -5,10 +5,17 @@ import {
   Text,
   Image,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { BlurView } from "expo-blur";
 
-export default function RecipeModal({ visible, ingredient, onClose, onSave }) {
+export default function EditIngredientModal({
+  visible,
+  ingredient,
+  onClose,
+  onSave,
+  onDelete,
+}) {
   if (!ingredient) {
     return null;
   }
@@ -91,14 +98,34 @@ export default function RecipeModal({ visible, ingredient, onClose, onSave }) {
             </View>
           </View>
 
-          {/*delete & save changes buttons*/}
+          {/*delete button*/}
           <View className="flex-row items-center justify-center gap-3 mt-2">
             <View className="border-2 border-purple-700 rounded-lg px-10 pt-4 pb-4">
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!ingredient) return;
+
+                  Alert.alert(
+                    "Delete Ingredient",
+                    `Remove ${ingredient.name} from your inventory?`,
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      {
+                        text: "Remove",
+                        style: "destructive",
+                        onPress: () => {
+                          onDelete(ingredient);
+                        },
+                      },
+                    ],
+                  );
+                }}
+              >
                 <Text className="font-semibold">Delete</Text>
               </TouchableOpacity>
             </View>
 
+            {/*save changes button*/}
             <View className="bg-purple-700 rounded-lg px-4 pt-4 pb-4">
               <TouchableOpacity
                 onPress={() => {
