@@ -164,17 +164,26 @@ export default function GroceryScreen({ navigation }) {
         return;
       }
 
-      const amountNumber = Number(amount);
+      {
+        /*check valid amount if user input amount*/
+      }
+      let cleanedAmount = "";
 
-      if (isNaN(amountNumber) || amountNumber <= 0) {
-        Alert.alert("Invalid amount", "Please enter a valid amount.");
-        return;
+      if (amount.trim() !== "") {
+        const amountNumber = Number(amount);
+
+        if (isNaN(amountNumber) || amountNumber <= 0) {
+          Alert.alert("Invalid amount", "Please enter a valid amount.");
+          return;
+        }
+
+        cleanedAmount = amountNumber;
       }
 
       const ingredientToSave = {
         name: name,
-        amount: amount,
-        unit: unit || "",
+        amount: cleanedAmount,
+        unit: unit?.trim().toLowerCase() || "",
         image: ingredient?.image || "",
         aisle: ingredient?.aisle || "",
       };
@@ -195,8 +204,7 @@ export default function GroceryScreen({ navigation }) {
       if (error.message === "Unit Mismatch!") {
         Alert.alert(
           "Different unit",
-          "This ingredient already exists with a different unit.",
-          "Please use the same unit before adding to inventory.",
+          "This ingredient already exists with a different unit. Please use the same unit before adding to inventory.",
         );
         return;
       }

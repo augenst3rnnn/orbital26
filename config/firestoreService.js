@@ -172,7 +172,12 @@ export const getUserProfileWithAuth = async () => {
 {
   /*save an ingredient to user's inventory*/
 }
-export const saveIngredient = async (userId, ingredientId, ingredientData) => {
+export const saveIngredient = async (
+  userId,
+  ingredientId,
+  ingredientData,
+  addAmount = true,
+) => {
   try {
     const userRef = doc(db, "users", userId);
     const userSnap = await getDoc(userRef);
@@ -189,6 +194,7 @@ export const saveIngredient = async (userId, ingredientId, ingredientData) => {
       image: ingredientData.image || "",
       aisle: ingredientData.aisle || "",
       savedAt: new Date().toISOString(),
+      expiryDate: ingredientData.expiryDate || "",
     };
 
     const currentInventory = userSnap.data().ingredientInventory || [];
@@ -216,14 +222,14 @@ export const saveIngredient = async (userId, ingredientId, ingredientData) => {
 
       updatedInventory = currentInventory.map((item) => {
         if (item.id === ingredientId) {
-          {
-            /*add to amount instead of overwriting*/
-          }
           return {
             ...item,
-            amount:
-              Number(item.amount || 0) + Number(newIngredient.amount || 0),
-            unit: item.unit || newIngredient.unit,
+            //add if + button, overwrite if edit button
+            amount: addAmount
+              ? Number(item.amount || 0) + Number(newIngredient.amount || 0)
+              : Number(newIngredient.amount || 0),
+            unit: newIngredient.unit,
+            expiryDate: newIngredient.expiryDate,
           };
         }
 
