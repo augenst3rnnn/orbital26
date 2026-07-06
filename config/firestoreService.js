@@ -175,6 +175,11 @@ export const getUserProfileWithAuth = async () => {
 export const saveIngredient = async (userId, ingredientId, ingredientData) => {
   try {
     const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      throw new Error("User document not found");
+    }
 
     const newIngredient = {
       id: ingredientId,
@@ -186,14 +191,56 @@ export const saveIngredient = async (userId, ingredientId, ingredientData) => {
       savedAt: new Date().toISOString(),
     };
 
+    const currentInventory = userSnap.data().ingredientInventory || [];
+
+    {
+      /*check if ingredient is alr in inventory */
+    }
+    const existingIngredient = currentInventory.find(
+      (item) => item.id === ingredientId,
+    );
+
+    let updatedInventory;
+
+    if (existingIngredient) {
+      {
+        /*check unit mismatch*/
+      }
+      if (
+        existingIngredient.unit &&
+        newIngredient.unit &&
+        existingIngredient.unit !== newIngredient.unit
+      ) {
+        throw new Error("Unit Mismatch!");
+      }
+
+      updatedInventory = currentInventory.map((item) => {
+        if (item.id === ingredientId) {
+          {
+            /*add to amount instead of overwriting*/
+          }
+          return {
+            ...item,
+            amount:
+              Number(item.amount || 0) + Number(newIngredient.amount || 0),
+            unit: item.unit || newIngredient.unit,
+          };
+        }
+
+        return item;
+      });
+    } else {
+      updatedInventory = [...currentInventory, newIngredient];
+    }
+
     await updateDoc(userRef, {
-      ingredientInventory: arrayUnion(newIngredient),
+      ingredientInventory: updatedInventory,
     });
 
     console.log(`Ingredient ${ingredientData.name} saved to inventory`);
-    return { success: true, ingredient: newIngredient };
+    return updatedInventory;
   } catch (error) {
-    console.error("Error saving ingredient:", error);
+    console.log("Error saving ingredient:", error);
     throw error;
   }
 };

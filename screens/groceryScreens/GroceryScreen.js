@@ -10,6 +10,7 @@ import {
   TextInput,
   Pressable,
   FlatList,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockRecipes } from "../../data/mockRecipes";
@@ -21,9 +22,12 @@ import {
   getCurrentUserId,
   getIngredientInventory,
   getFavoriteRecipes,
+  saveIngredient,
 } from "../../config/firestoreService";
 import useAuth from "../../config/hooks/useAuth";
 import { getMissingIngredientsForRecipe } from "../../config/services/groceryUtils";
+import { searchIngredientByName } from "../../config/services/spoonacularService";
+import AddIngredientModal from "../../components/AddIngredientModal";
 
 const categories = [
   { name: "Produce", image: require("../../assets/icons/produce.png") },
@@ -66,20 +70,13 @@ export default function GroceryScreen({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [inventoryCount, setInventoryCount] = useState(0);
   const [missingCount, setMissingCount] = useState(0);
+  const [ingSearchResults, setIngSearchResults] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedIng, setSelectedIng] = useState(null);
+  const [ingredientInventory, setIngredientInventory] = useState([]);
 
   const groceryCount = mockGroceryList.length;
 
-  //fetch inventory count from firestore
-  /*useEffect(() => {
-    if (!user?.uid) return;
-
-    const fetchInventoryCount = async () => {
-      const inventory = await getIngredientInventory(user.uid);
-      setInventoryCount(inventory.length);
-    };
-
-    fetchInventoryCount();
-  }, [user?.uid]);*/
   useFocusEffect(
     useCallback(() => {
       if (!user?.uid) return;
@@ -133,7 +130,8 @@ export default function GroceryScreen({ navigation }) {
     },
   ];
 
-  const filteredIngredients = mockIngredients.filter((ingredient) => {
+  //search using mock ingredients
+  /*const filteredIngredients = mockIngredients.filter((ingredient) => {
     const matchesSearch = ingredient.name
       .toLowerCase()
       .includes(debouncedSearchQuery.toLowerCase());
@@ -141,9 +139,72 @@ export default function GroceryScreen({ navigation }) {
     const matchesCategory =
       selectedCategory === null || ingredient.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  });*/
 
   const isSearching = debouncedSearchQuery.trim().length > 0;
+
+  //search ingredients using Spoonacular API
+  useEffect(() => {
+    if (isSearching) {
+      searchIngredientByName(debouncedSearchQuery.trim().toLowerCase())
+        .then((results) => setIngSearchResults(results))
+        .catch((error) => {
+          console.error("Error searching ingredients from API:", error);
+          setIngSearchResults([]);
+        });
+    } else {
+      setIngSearchResults([]);
+    }
+  }, [debouncedSearchQuery, isSearching]);
+
+  const handleAddIngredient = async ({ name, amount, unit, ingredient }) => {
+    try {
+      if (!amount.trim()) {
+        Alert.alert("Missing amount", "Please enter an amount.");
+        return;
+      }
+
+      const amountNumber = Number(amount);
+
+      if (isNaN(amountNumber) || amountNumber <= 0) {
+        Alert.alert("Invalid amount", "Please enter a valid amount.");
+        return;
+      }
+
+      const ingredientToSave = {
+        name: name,
+        amount: amount,
+        unit: unit || "",
+        image: ingredient?.image || "",
+        aisle: ingredient?.aisle || "",
+      };
+
+      const updatedInventory = await saveIngredient(
+        user.uid,
+        ingredient.id,
+        ingredientToSave,
+      );
+
+      setIngredientInventory(updatedInventory);
+      setShowAddModal(false);
+      setSelectedIng(null);
+    } catch (error) {
+      {
+        /*catch error thrown from saveIngredient function*/
+      }
+      if (error.message === "Unit Mismatch!") {
+        Alert.alert(
+          "Different unit",
+          "This ingredient already exists with a different unit.",
+          "Please use the same unit before adding to inventory.",
+        );
+        return;
+      }
+
+      console.log("Error adding ingredient:", error);
+      Alert.alert("Error", "Could not add ingredient.");
+    }
+  };
 
   return (
     <View className="flex-1 bg-white">
@@ -185,22 +246,24 @@ export default function GroceryScreen({ navigation }) {
                 Search Results
               </Text>
 
-              {filteredIngredients.map((ingredient) => (
-                <Pressable
+              {ingSearchResults.map((ingredient) => (
+                <View
                   key={ingredient.id}
-                  className="flex-row items-center justify-between bg-purple-50 rounded-2xl px-4 py-4 mb-3"
+                  className="flex-row items-center justify-between bg-purple-50 rounded-2xl px-5 py-6 mb-4"
                 >
-                  <View>
-                    <Text className="font-bold text-base">
-                      {ingredient.name}
-                    </Text>
-                    <Text className="text-gray-500 text-sm">
-                      {ingredient.quantity}
-                    </Text>
-                  </View>
+                  <Text className="font-bold text-base">{ingredient.name}</Text>
 
-                  <Text className="text-purple-600 font-bold">Add</Text>
-                </Pressable>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedIng(ingredient);
+                      setShowAddModal(true);
+                    }}
+                  >
+                    <View className="bg-gray-50 rounded-xl p-3 shadow">
+                      <Text className="text-purple-600 font-bold">Add</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
               ))}
             </View>
           ) : (
@@ -274,6 +337,17 @@ export default function GroceryScreen({ navigation }) {
           )}
         </ScrollView>
       </View>
+
+      {/* add ingredient modal */}
+      <AddIngredientModal
+        visible={showAddModal}
+        ingredient={selectedIng}
+        onClose={() => {
+          setShowAddModal(false);
+          setSelectedIng(null);
+        }}
+        onSave={handleAddIngredient}
+      />
     </View>
   );
 }

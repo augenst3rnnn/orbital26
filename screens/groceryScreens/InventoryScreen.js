@@ -38,6 +38,7 @@ export default function InventoryScreen({ navigation }) {
   const [showEditOptions, setShowEditOptions] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [inventory, setInventory] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -117,20 +118,50 @@ export default function InventoryScreen({ navigation }) {
         return;
       }
 
-      const ingredientResult = await searchIngredientByName(name);
+      {
+        /*check valid amount if user input amount*/
+      }
+      if (amount != "") {
+        const amountNumber = Number(amount);
 
-      await saveIngredient(user.uid, ingredientResult.id, {
-        name: ingredientResult.name,
-        amount: amount || "", //amount & unit are optional
-        unit: unit || "",
-        image: ingredientResult.image,
-        aisle: ingredientResult.aisle,
-      });
+        if (isNaN(amountNumber) || amountNumber <= 0) {
+          Alert.alert("Invalid amount", "Please enter a valid amount.");
+          return;
+        }
+      }
+
+      //error bc this is array of size5 i think => extract top result?
+      const ingredientResult = await searchIngredientByName(name);
+      setSearchResults(ingredientResult);
+      setSelectedIngredient(searchResults[0]);
+
+      const updatedInventory = await saveIngredient(
+        user.uid,
+        selectedIngredient.id,
+        {
+          name: selectedIngredient.name,
+          amount: amount || "", //amount & unit are optional
+          unit: unit || "",
+          image: selectedIngredient.image || "",
+          aisle: selectedIngredient.aisle || "",
+        },
+      );
 
       //input collected by AddIngredientModal
+      setInventory(updatedInventory);
       setShowAddModal(false);
     } catch (error) {
+      if (error.message === "Unit Mismatch!") {
+        Alert.alert(
+          "Different unit",
+          "This ingredient already exists with a different unit.",
+          "Please use the same unit before adding to inventory.",
+        );
+        return;
+      }
+
       console.error("Error adding ingredient:", error);
+      Alert.alert("Error", "Could not add ingredient.");
     }
   };
 

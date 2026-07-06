@@ -303,8 +303,11 @@ export const searchIngredientByName = async (ingredientName) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
+    {
+      /*return array of size 5*/
+    }
     const response = await fetch(
-      `https://api.spoonacular.com/food/ingredients/search?query=${encodeURIComponent(normalizedName)}&number=1&apiKey=${SPOONACULAR_API_KEY}`,
+      `https://api.spoonacular.com/food/ingredients/search?query=${encodeURIComponent(normalizedName)}&number=5&apiKey=${SPOONACULAR_API_KEY}`,
       { signal: controller.signal },
     );
 
@@ -323,8 +326,8 @@ export const searchIngredientByName = async (ingredientName) => {
       throw new Error("No ingredient found");
     }
 
-    //data.results is an array of length 1 (bc number = 1)
-    const ingredientData = data.results[0];
+    //data.results is an array of length 5 (bc number = 5)
+    const ingredientData = data.results;
 
     await setCachedData(cacheKey, ingredientData);
 
