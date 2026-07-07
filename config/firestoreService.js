@@ -179,6 +179,7 @@ export const getMealPlanForWeek = async (userId, weekStart) => {
     }
 };
 
+{/* save meal for a specific day and meal type */}
 export const saveMealForDay = async (userId, date, mealType, recipeData) => {
     try {
         const userRef = doc(db, "users", userId);
@@ -191,10 +192,16 @@ export const saveMealForDay = async (userId, date, mealType, recipeData) => {
         }
         
         mealPlans[date][mealType] = {
-            recipeId: recipeData.id,
+            id: recipeData.id,
             title: recipeData.title,
-            image: recipeData.image || '',
+            image: recipeData.image,
+            summary: recipeData.summary || '',
+            ingredients: recipeData.ingredients || [],
+            instructions: recipeData.instructions || [],
+            readyInMinutes: recipeData.readyInMinutes || 20,
+            servings: recipeData.servings || 2,
             calories: recipeData.calories || 0,
+            extendedIngredients: recipeData.extendedIngredients || [],
         };
         
         await updateDoc(userRef, {

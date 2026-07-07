@@ -219,7 +219,18 @@ export default function MealPlannerScreen({ navigation }) {
                             onPress={() => {
                                 if (dayMeals.breakfast) {
                                     navigation.navigate('RecipeDetails', { 
-                                        recipe: dayMeals.breakfast 
+                                        recipe: {
+                                            id: dayMeals.breakfast.id || dayMeals.breakfast.recipeId,
+                                            title: dayMeals.breakfast.title,
+                                            image: dayMeals.breakfast.image,
+                                            summary: dayMeals.breakfast.summary || '',
+                                            ingredients: dayMeals.breakfast.ingredients || [],
+                                            instructions: dayMeals.breakfast.instructions || [],
+                                            readyInMinutes: dayMeals.breakfast.readyInMinutes || 20,
+                                            servings: dayMeals.breakfast.servings || 2,
+                                            calories: dayMeals.breakfast.calories || 0,
+                                            extendedIngredients: dayMeals.breakfast.extendedIngredients || [],
+                                        }
                                     });
                                 }
                             }}
@@ -236,7 +247,18 @@ export default function MealPlannerScreen({ navigation }) {
                             onPress={() => {
                                 if (dayMeals.lunch) {
                                     navigation.navigate('RecipeDetails', { 
-                                        recipe: dayMeals.lunch 
+                                        recipe: {
+                                            id: dayMeals.lunch.id || dayMeals.lunch.recipeId,
+                                            title: dayMeals.lunch.title,
+                                            image: dayMeals.lunch.image,
+                                            summary: dayMeals.lunch.summary || '',
+                                            ingredients: dayMeals.lunch.ingredients || [],
+                                            instructions: dayMeals.lunch.instructions || [],
+                                            readyInMinutes: dayMeals.lunch.readyInMinutes || 20,
+                                            servings: dayMeals.lunch.servings || 2,
+                                            calories: dayMeals.lunch.calories || 0,
+                                            extendedIngredients: dayMeals.lunch.extendedIngredients || [],
+                                        }
                                     });
                                 }
                             }}
@@ -253,7 +275,18 @@ export default function MealPlannerScreen({ navigation }) {
                             onPress={() => {
                                 if (dayMeals.dinner) {
                                     navigation.navigate('RecipeDetails', { 
-                                        recipe: dayMeals.dinner 
+                                        recipe: {
+                                            id: dayMeals.dinner.id || dayMeals.dinner.recipeId,
+                                            title: dayMeals.dinner.title,
+                                            image: dayMeals.dinner.image,
+                                            summary: dayMeals.dinner.summary || '',
+                                            ingredients: dayMeals.dinner.ingredients || [],
+                                            instructions: dayMeals.dinner.instructions || [],
+                                            readyInMinutes: dayMeals.dinner.readyInMinutes || 20,
+                                            servings: dayMeals.dinner.servings || 2,
+                                            calories: dayMeals.dinner.calories || 0,
+                                            extendedIngredients: dayMeals.dinner.extendedIngredients || [],
+                                        }
                                     });
                                 }
                             }}
