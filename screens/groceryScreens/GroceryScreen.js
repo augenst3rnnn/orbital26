@@ -26,7 +26,10 @@ import {
 } from "../../config/firestoreService";
 import useAuth from "../../config/hooks/useAuth";
 import { getMissingIngredientsForRecipe } from "../../config/services/groceryUtils";
-import { searchIngredientByName } from "../../config/services/spoonacularService";
+import {
+  getIngredientInformation,
+  searchIngredientByName,
+} from "../../config/services/spoonacularService";
 import AddIngredientModal from "../../components/AddIngredientModal";
 
 const categories = [
@@ -41,27 +44,37 @@ const categoryMap = {
   Produce: "Produce",
 
   Meat: "Meat",
+  Seafood: "Meat",
 
   "Milk, Eggs, Other Dairy": "Dairy",
+  Cheese: "Dairy",
 
   Baking: "Pantry",
   "Pasta and Rice": "Pantry",
   "Canned and Jarred": "Pantry",
-  Condments: "Pantry",
+  Condiments: "Pantry",
+  "Spices and Seasonings": "Pantry",
+  //add other categories => default pantry ?
 
   Beverages: "Beverages",
   "Tea and Coffee": "Beverages",
 };
 
-//later add function in spoonacularService? (fetch real API)
+const getMainCategory = (aisle) => {
+  if (!aisle) {
+    return "Pantry";
+  }
+
+  return categoryMap[aisle] || "Pantry";
+};
+
+//later add function in spoonacularService (fetch real API)
 const mockIngredients = [
   { id: 1, name: "Eggs", category: "Dairy", quantity: "12 eggs" },
   { id: 2, name: "Tomato", category: "Produce", quantity: "3" },
   { id: 3, name: "Chicken Breast", category: "Meat", quantity: "500g" },
   { id: 4, name: "Milk", category: "Dairy", quantity: "1L" },
 ];
-
-//const userId = getCurrentUserId();
 
 export default function GroceryScreen({ navigation }) {
   const { user } = useAuth();
@@ -77,6 +90,7 @@ export default function GroceryScreen({ navigation }) {
 
   const groceryCount = mockGroceryList.length;
 
+  //fetch inventory couunt from firestore
   useFocusEffect(
     useCallback(() => {
       if (!user?.uid) return;
@@ -145,7 +159,56 @@ export default function GroceryScreen({ navigation }) {
 
   //search ingredients using Spoonacular API
   useEffect(() => {
-    if (isSearching) {
+    const fetchIngredients = async () => {
+      if (!isSearching || debouncedSearchQuery.trim() === "") {
+        setIngSearchResults([]);
+        return;
+      }
+      try {
+        //edit SIBN func to accept number
+        const results = await searchIngredientByName(debouncedSearchQuery);
+
+        const detailedResults = await Promise.all(
+          results.map(async (ingredient) => {
+            try {
+              const fullIngInfo = await getIngredientInformation(ingredient.id);
+
+              return {
+                ...ingredient,
+                aisle: fullIngInfo.aisle || "",
+              };
+            } catch (error) {
+              console.log("Error fetching ingredient details:", error);
+
+              return {
+                ...ingredient,
+                aisle: "",
+              };
+            }
+          }),
+        );
+
+        const filteredResults = detailedResults.filter((ingredient) => {
+          const ingredientCategory = getMainCategory(ingredient.aisle);
+
+          const matchesCategory =
+            selectedCategory === null ||
+            ingredientCategory === selectedCategory;
+
+          return matchesCategory;
+        });
+
+        setIngSearchResults(filteredResults);
+      } catch (error) {
+        console.log("Error searching ingredients:", error);
+        setIngSearchResults([]);
+      }
+    };
+
+    fetchIngredients();
+  }, [debouncedSearchQuery, isSearching, selectedCategory]);
+
+  /*if (isSearching) {
       searchIngredientByName(debouncedSearchQuery.trim().toLowerCase())
         .then((results) => setIngSearchResults(results))
         .catch((error) => {
@@ -155,7 +218,7 @@ export default function GroceryScreen({ navigation }) {
     } else {
       setIngSearchResults([]);
     }
-  }, [debouncedSearchQuery, isSearching]);
+  }, [debouncedSearchQuery, isSearching]);*/
 
   const handleAddIngredient = async ({ name, amount, unit, ingredient }) => {
     try {
@@ -180,12 +243,20 @@ export default function GroceryScreen({ navigation }) {
         cleanedAmount = amountNumber;
       }
 
+      let fullIngredientData = ingredient;
+
+      //fetch fields like aisle
+      if (ingredient?.id) {
+        fullIngredientData = await getIngredientInformation(ingredient.id);
+      }
+
       const ingredientToSave = {
         name: name,
         amount: cleanedAmount,
         unit: unit?.trim().toLowerCase() || "",
-        image: ingredient?.image || "",
-        aisle: ingredient?.aisle || "",
+        image: fullIngredientData?.image || "",
+        aisle: fullIngredientData?.aisle || "",
+        expiryDate: "",
       };
 
       const updatedInventory = await saveIngredient(
@@ -256,7 +327,7 @@ export default function GroceryScreen({ navigation }) {
 
               {ingSearchResults.map((ingredient) => (
                 <View
-                  key={ingredient.id}
+                  key={String(ingredient.id)}
                   className="flex-row items-center justify-between bg-purple-50 rounded-2xl px-5 py-6 mb-4"
                 >
                   <Text className="font-bold text-base">{ingredient.name}</Text>

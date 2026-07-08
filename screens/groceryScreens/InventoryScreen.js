@@ -17,7 +17,10 @@ import { mockInventory } from "../../data/mockInventory";
 import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
 import EditIngredientModal from "../../components/EditIngredientModal";
-import { searchIngredientByName } from "../../config/services/spoonacularService";
+import {
+  getIngredientInformation,
+  searchIngredientByName,
+} from "../../config/services/spoonacularService";
 import AddIngredientModal from "../../components/AddIngredientModal";
 import {
   saveIngredient,
@@ -182,7 +185,7 @@ export default function InventoryScreen({ navigation }) {
         user.uid,
         selectedIngredient.id,
         editedIngredient,
-        false,
+        false, //overwrite amount, don't add onto og amount!
       );
 
       setInventory(updatedInventory);
@@ -230,6 +233,12 @@ export default function InventoryScreen({ navigation }) {
 
       const topIngredient = ingredientResults[0]; //await ensures promise => array
 
+      let fullIngredientData = topIngredient;
+
+      if (topIngredient?.id) {
+        fullIngredientData = await getIngredientInformation(topIngredient.id);
+      }
+
       const updatedInventory = await saveIngredient(
         user.uid,
         topIngredient.id,
@@ -237,8 +246,8 @@ export default function InventoryScreen({ navigation }) {
           name: topIngredient.name ?? name.trim(),
           amount: cleanedAmount || "", //amount & unit are optional
           unit: unit?.trim().toLowerCase() || "",
-          image: topIngredient.image || "",
-          aisle: topIngredient.aisle || "",
+          image: fullIngredientData.image || "",
+          aisle: fullIngredientData.aisle || "",
         },
       );
 
@@ -288,7 +297,7 @@ export default function InventoryScreen({ navigation }) {
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ paddingBottom: 200 }}
         >
           {/*render search results OR all inventory*/}
           {isSearching ? (

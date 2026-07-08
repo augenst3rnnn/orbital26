@@ -21,6 +21,18 @@ export default function EditIngredientModal({
   const [amount, setAmount] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
 
+  const getIngredientImageURL = (image) => {
+    if (!image) {
+      return "";
+    }
+
+    if (image.startsWith("http")) {
+      return image;
+    }
+
+    return `https://img.spoonacular.com/ingredients_100x100/${image}`;
+  };
+
   useEffect(() => {
     if (ingredient) {
       setAmount(String(ingredient.amount || ""));
@@ -71,9 +83,9 @@ export default function EditIngredientModal({
             <View className="items-center justify-center gap-3">
               <Text className="text-xl font-semibold">Edit Ingredient</Text>
               <Image
-                source={ingredient.image}
-                className="w-32 h-32"
-                resizeMode="cover"
+                source={{ uri: getIngredientImageURL(ingredient.image) }}
+                style={{ width: 150, height: 150 }}
+                resizeMode="contain"
               />
 
               <Text className="text-xl font-bold">{ingredient.name}</Text>
