@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  StatusBar,
   ScrollView,
   TextInput,
   Pressable,
   FlatList,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockRecipes } from "../../data/mockRecipes";
@@ -17,8 +17,18 @@ import { mockInventory } from "../../data/mockInventory";
 import { mockMissingIngredients } from "../../data/mockMissingIngredients";
 import { mockGroceryList } from "../../data/mockGroceryList";
 import EditIngredientModal from "../../components/EditIngredientModal";
+import { searchIngredientByName } from "../../config/services/spoonacularService";
+import AddIngredientModal from "../../components/AddIngredientModal";
+import {
+  saveIngredient,
+  getCurrentUserId,
+  getIngredientInventory,
+  deleteIngredient,
+} from "../../config/firestoreService";
+import useAuth from "../../config/hooks/useAuth";
 
 export default function InventoryScreen({ navigation }) {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedLetterGroup, setSelectedLetterGroup] = useState("A-Z");
@@ -26,6 +36,8 @@ export default function InventoryScreen({ navigation }) {
   const [recentSearches, setRecentSearches] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [showEditOptions, setShowEditOptions] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [inventory, setInventory] = useState([]);
 
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
@@ -56,7 +68,18 @@ export default function InventoryScreen({ navigation }) {
     { label: "V-Z", start: "v", end: "z" },
   ];
 
-  const filteredIngredients = mockInventory.filter((ingredient) => {
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const fetchInventory = async () => {
+      const data = await getIngredientInventory(user.uid);
+      setInventory(data);
+    };
+
+    fetchInventory();
+  }, [user?.uid]);
+
+  const filteredIngredients = inventory.filter((ingredient) => {
     const matchesSearch = ingredient.name
       .toLowerCase()
       .includes(debouncedSearchQuery.toLowerCase());
@@ -68,7 +91,7 @@ export default function InventoryScreen({ navigation }) {
 
   const isSearching = debouncedSearchQuery.trim().length > 0;
 
-  const filterByLetterGroup = mockInventory.filter((ingredient) => {
+  const filterByLetterGroup = inventory.filter((ingredient) => {
     const selectedGroup = letterGroups.find(
       (group) => group.label === selectedLetterGroup,
     );
@@ -85,6 +108,30 @@ export default function InventoryScreen({ navigation }) {
   const handleOpenEditModal = (ingredient) => {
     setSelectedIngredient(ingredient);
     setShowEditOptions(true);
+  };
+
+  const handleAddIngredient = async ({ name, amount, unit }) => {
+    try {
+      if (!name.trim()) {
+        Alert.alert("Missing name", "Please enter an ingredient name.");
+        return;
+      }
+
+      const ingredientResult = await searchIngredientByName(name);
+
+      await saveIngredient(user.uid, ingredientResult.id, {
+        name: ingredientResult.name,
+        amount: amount || "", //amount & unit are optional
+        unit: unit || "",
+        image: ingredientResult.image,
+        aisle: ingredientResult.aisle,
+      });
+
+      //input collected by AddIngredientModal
+      setShowAddModal(false);
+    } catch (error) {
+      console.error("Error adding ingredient:", error);
+    }
   };
 
   return (
@@ -256,6 +303,7 @@ export default function InventoryScreen({ navigation }) {
         <Text className="text-black text-xl">←</Text>
       </TouchableOpacity>
 
+      {/*edit ingredient modal popup*/}
       <EditIngredientModal
         visible={showEditOptions}
         ingredient={selectedIngredient}
@@ -267,6 +315,37 @@ export default function InventoryScreen({ navigation }) {
           setShowEditOptions(false);
           setSelectedIngredient(null);
         }}
+        onDelete={async (ingredientToDelete) => {
+          try {
+            const updatedInventory = await deleteIngredient(
+              user.uid,
+              ingredientToDelete,
+            );
+
+            setInventory(updatedInventory);
+
+            setShowEditOptions(false);
+            setSelectedIngredient(null);
+          } catch (error) {
+            console.log("Error deleting ingredient from screen:", error);
+            Alert.alert("Error", "Could not delete ingredient.");
+          }
+        }}
+      />
+
+      {/*add ingredient to inventory button*/}
+      <TouchableOpacity
+        className="absolute bottom-20 right-10 w-16 h-16 rounded-full bg-yellow-400 shadow-lg flex items-center justify-center"
+        onPress={() => setShowAddModal(true)}
+      >
+        <Text className="text-white text-3xl font-bold">+</Text>
+      </TouchableOpacity>
+
+      {/*add ingredient modal popup*/}
+      <AddIngredientModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddIngredient}
       />
     </View>
   );

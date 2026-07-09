@@ -64,7 +64,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
 
   useEffect(() => {
     const fetchDetails = async () => {
-      // check if the recipe is a mock recipe with full data from firestore
+      //check if the recipe is a mock recipe with full data from firestore
       if (
         recipe.id <= 8 &&
         recipe.ingredients &&
@@ -121,7 +121,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
             ...recipe,
             instructions: details.instructions,
             extendedIngredients: details.extendedIngredients.map((ing) => ({
-              original: ing,
+              original: ing.original,
             })),
             ingredients:
               details.extendedIngredients.length > 0
@@ -229,6 +229,40 @@ export default function RecipeDetailsScreen({ route, navigation }) {
         console.error("Error adding to meal plan:", error);
         Alert.alert("Error", "Failed to add to meal plan");
       });
+
+      const isMockRecipe = currentRecipe?.id && currentRecipe.id <= 8;
+
+      if (isFavorite) {
+        await removeFavoriteRecipe(userId, currentRecipe.id);
+        setIsFavorite(false);
+        Alert.alert("Removed", "Recipe removed from favorites");
+      } else {
+        const recipeDetails = await getRecipeDetails(currentRecipe.id);
+
+        await saveFavoriteRecipe(userId, currentRecipe.id, {
+          id: currentRecipe.id,
+          title: currentRecipe.title,
+          image: currentRecipe.image,
+          summary: recipeDetails.summary || currentRecipe.summary || "",
+          ingredients: recipeDetails.extendedIngredients || [],
+          instructions: recipeDetails.instructions || [],
+          readyInMinutes:
+            recipeDetails.readyInMinutes || currentRecipe.readyInMinutes || 20,
+          servings: recipeDetails.servings || currentRecipe.servings || 2,
+          likes: currentRecipe.likes || 0,
+
+          isMock: isMockRecipe,
+          savedAt: new Date().toISOString(),
+        });
+        setIsFavorite(true);
+        Alert.alert("Saved", "Recipe added to favorites!");
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      Alert.alert("Error", "Failed to update favorites");
+    } finally {
+      setFavoriteLoading(false);
+    }
   };
 
   return (
