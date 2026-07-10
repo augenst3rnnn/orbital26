@@ -56,6 +56,10 @@ export const updateUserProfile = async (userId, userData) => {
   }
 };
 
+{
+  /*get current authenticated user ID, throw error if no user is logged in*/
+}
+
 export const getCurrentUserId = () => {
   const user = auth.currentUser;
   if (!user) {
@@ -64,6 +68,9 @@ export const getCurrentUserId = () => {
   return user.uid;
 };
 
+{
+  /*update user display name*/
+}
 export const updateDisplayName = async (userId, displayName) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -94,6 +101,10 @@ export const getFavoriteRecipes = async (userId) => {
   }
 };
 
+{
+  /*save a recipe to user's favourites*/
+}
+
 export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -104,7 +115,8 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
         image: recipeData.image,
         savedAt: new Date().toISOString(),
         summary: recipeData.summary || "",
-        ingredients: recipeData.extendedIngredients || recipeData.ingredients || [],
+        ingredients:
+          recipeData.extendedIngredients || recipeData.ingredients || [],
         instructions: recipeData.instructions || [],
         readyInMinutes: recipeData.readyInMinutes || 20,
         servings: recipeData.servings || 2,
@@ -120,9 +132,13 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
   }
 };
 
+{
+  /*remove user's favourite recipe*/
+}
 export const removeFavoriteRecipe = async (userId, recipeId) => {
   try {
     const userRef = doc(db, "users", userId);
+    // Find the favorite entry with matching ID
     const userDoc = await getDoc(userRef);
     const favorites = userDoc.data()?.favoriteRecipes || [];
     const favoriteToRemove = favorites.find((f) => f.id === recipeId);
@@ -140,6 +156,9 @@ export const removeFavoriteRecipe = async (userId, recipeId) => {
   }
 };
 
+{
+  /*get user's profile with error handling*/
+}
 export const getUserProfileWithAuth = async () => {
   try {
     const userId = getCurrentUserId();
@@ -150,9 +169,22 @@ export const getUserProfileWithAuth = async () => {
   }
 };
 
-export const saveIngredient = async (userId, ingredientId, ingredientData) => {
+{
+  /*save an ingredient to user's inventory*/
+}
+export const saveIngredient = async (
+  userId,
+  ingredientId,
+  ingredientData,
+  addAmount = true,
+) => {
   try {
     const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      throw new Error("User document not found");
+    }
 
     const newIngredient = {
       id: ingredientId,
@@ -162,20 +194,66 @@ export const saveIngredient = async (userId, ingredientId, ingredientData) => {
       image: ingredientData.image || "",
       aisle: ingredientData.aisle || "",
       savedAt: new Date().toISOString(),
+      expiryDate: ingredientData.expiryDate || "",
     };
 
+    const currentInventory = userSnap.data().ingredientInventory || [];
+
+    {
+      /*check if ingredient is alr in inventory */
+    }
+    const existingIngredient = currentInventory.find(
+      (item) => item.id === ingredientId,
+    );
+
+    let updatedInventory;
+
+    if (existingIngredient) {
+      {
+        /*check unit mismatch*/
+      }
+      if (
+        existingIngredient.unit &&
+        newIngredient.unit &&
+        existingIngredient.unit !== newIngredient.unit
+      ) {
+        throw new Error("Unit Mismatch!");
+      }
+
+      updatedInventory = currentInventory.map((item) => {
+        if (item.id === ingredientId) {
+          return {
+            ...item,
+            //add if + (add) button, overwrite if ... (edit) button
+            amount: addAmount
+              ? Number(item.amount || 0) + Number(newIngredient.amount || 0)
+              : Number(newIngredient.amount || 0),
+            unit: newIngredient.unit,
+            expiryDate: newIngredient.expiryDate,
+          };
+        }
+
+        return item;
+      });
+    } else {
+      updatedInventory = [...currentInventory, newIngredient];
+    }
+
     await updateDoc(userRef, {
-      ingredientInventory: arrayUnion(newIngredient),
+      ingredientInventory: updatedInventory,
     });
 
     console.log(`Ingredient ${ingredientData.name} saved to inventory`);
-    return { success: true, ingredient: newIngredient };
+    return updatedInventory;
   } catch (error) {
-    console.error("Error saving ingredient:", error);
+    console.log("Error saving ingredient:", error);
     throw error;
   }
 };
 
+{
+  /*delete an ingredient from user's infventory*/
+}
 export const deleteIngredient = async (userId, ingredientToDelete) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -186,10 +264,10 @@ export const deleteIngredient = async (userId, ingredientToDelete) => {
     }
 
     const currentInventory = userDoc.data()?.ingredientInventory || [];
+
     const updatedInventory = currentInventory.filter((ingredient) => {
       return ingredient.id !== ingredientToDelete.id;
     });
-
     await updateDoc(userRef, {
       ingredientInventory: updatedInventory,
     });
@@ -201,6 +279,9 @@ export const deleteIngredient = async (userId, ingredientToDelete) => {
   }
 };
 
+{
+  /*get user's ingredient inventory*/
+}
 export const getIngredientInventory = async (userId) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -216,7 +297,10 @@ export const getIngredientInventory = async (userId) => {
     return [];
   }
 };
-//meal plan functions
+
+{
+  /* meal planner functions */
+}
 export const getMealPlanForWeek = async (userId, weekStart) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -245,6 +329,9 @@ export const getMealPlanForWeek = async (userId, weekStart) => {
   }
 };
 
+{
+  /* save meal for a specific day and meal type */
+}
 export const saveMealForDay = async (userId, date, mealType, recipeData) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -303,7 +390,7 @@ export const removeMealForDay = async (userId, date, mealType) => {
   }
 };
 
-// helper functions
+//helper functions to get week start date and all dates in the week
 const getWeekStart = (date) => {
   const d = new Date(date);
   const day = d.getDay();
