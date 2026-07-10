@@ -142,11 +142,12 @@ export default function ProfileScreen({ navigation }) {
             {/* Recipe image*/}
             <View className="relative">
                 <Image
-                    source={typeof item.image === 'string' 
-                      ? { uri: item.image } 
-                      : item.image || require('../assets/icons/avatar.png')
-        }
-                    style={{ width: 60, height: 60, borderRadius: 12 }}
+                    source={
+                        typeof item.image === 'string' 
+                        ? { uri: item.image } 
+                        : item.image || require('../assets/icons/avatar.png')
+                    }
+                style={{ width: 60, height: 60, borderRadius: 12 }}
                 />
             </View>
 
