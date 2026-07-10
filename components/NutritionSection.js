@@ -102,8 +102,8 @@ const NutritionSection = ({ recipeId }) => {
 
           {/*Macronutrients*/}
           <View className="p-4 bg-gray-50">
-            <Text className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">
-              MACRONUTRIENTS
+            <Text className="text-md text-gray-500 mb-3 font-bold tracking-wider">
+              Macronutrients
             </Text>
 
             <View className="flex-row flex-wrap justify-between">
@@ -122,7 +122,7 @@ const NutritionSection = ({ recipeId }) => {
                 </View>
                 <Text className="text-2xl font-bold text-blue-700">
                   {Math.round(nutrition.protein)}
-                  <Text className="text-sm font-normal text-blue-500">g</Text>
+                  <Text className="text-sm font-bold text-blue-500">g</Text>
                 </Text>
                 <Text className="text-xs text-blue-600 mt-2">
                   Builds muscle & repairs tissue
@@ -144,7 +144,7 @@ const NutritionSection = ({ recipeId }) => {
                 </View>
                 <Text className="text-2xl font-bold text-orange-700">
                   {Math.round(nutrition.carbs)}
-                  <Text className="text-sm font-normal text-orange-500">g</Text>
+                  <Text className="text-sm font-bold text-orange-500">g</Text>
                 </Text>
                 <Text className="text-xs text-orange-600 mt-2">
                   Primary energy source
@@ -166,7 +166,7 @@ const NutritionSection = ({ recipeId }) => {
                 </View>
                 <Text className="text-2xl font-bold text-green-700">
                   {Math.round(nutrition.fat)}
-                  <Text className="text-sm font-normal text-green-500">g</Text>
+                  <Text className="text-sm font-bold text-green-500">g</Text>
                 </Text>
                 <Text className="text-xs text-green-600 mt-2">
                   Essential for hormone function
@@ -188,9 +188,9 @@ const NutritionSection = ({ recipeId }) => {
                 </View>
                 <Text className="text-2xl font-bold text-purple-700">
                   {Math.round(nutrition.fiber)}
-                  <Text className="text-sm font-normal text-purple-500">g</Text>
+                  <Text className="text-sm font-bold text-purple-500">g</Text>
                 </Text>
-                <Text className="text-xs text-purple-600 mt-2">
+                <Text className="text-xs font-normal text-purple-600 mt-2">
                   Supports digestive health
                 </Text>
               </View>

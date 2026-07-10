@@ -17,7 +17,7 @@ import { searchRecipesByIngredients } from "../config/services/spoonacularServic
 import RecipeCard from "../components/RecipeCard";
 import Categories from "../components/Categories";
 
-export default function HomeScreen() {
+export default function HomeScreen({ route, navigation }) {
   const { user } = useAuth();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,6 +26,35 @@ export default function HomeScreen() {
   const [recipes, setRecipes] = useState([]);
   const [recipeLoading, setRecipeLoading] = useState(false);
   const [selectedDietary, setSelectedDietary] = useState([]);
+
+  // Meal planner params state
+  const [plannerParams, setPlannerParams] = useState(null);
+
+  // Get params from navigation (for meal planner)
+  const returnToPlanner = route.params?.returnToPlanner;
+  const plannerDate = route.params?.date;
+  const plannerMealType = route.params?.mealType;
+  const plannerOnSelect = route.params?.onSelect;
+
+  // When params arrive, store them in state
+  useEffect(() => {
+    if (returnToPlanner) {
+      console.log('🏠 HomeScreen: Received planner params!');
+      setPlannerParams({
+        returnToPlanner: true,
+        date: plannerDate,
+        mealType: plannerMealType,
+        onSelect: plannerOnSelect
+      });
+      // Clear route params after storing
+      navigation.setParams({
+        returnToPlanner: undefined,
+        date: undefined,
+        mealType: undefined,
+        onSelect: undefined
+      });
+    }
+  }, [returnToPlanner]);
 
   useEffect(() => {
     if (user) {
@@ -36,8 +65,10 @@ export default function HomeScreen() {
   useEffect(() => {
     if (ingredients.length > 0) {
       setRecipeLoading(true);
-      searchRecipesByIngredients(ingredients, selectedDietary) // Add selectedDietary
-        .then((data) => setRecipes(data))
+      searchRecipesByIngredients(ingredients, selectedDietary)
+        .then((data) => {
+          setRecipes(data);
+        })
         .catch((error) => {
           console.error("API Error: ", error);
           setRecipes([]);
@@ -60,25 +91,44 @@ export default function HomeScreen() {
   };
 
   const handleLogout = async () => {
-    //use signOut from firebase
-    await signOut(auth); //go back welcomescreen
+    await signOut(auth);
   };
 
-  {
-    /*add ingredient func*/
-  }
   const addIngredient = () => {
     if (!ingredient.trim()) return;
-    if (ingredients.includes(ingredient.trim())) return; // no duplicates
+    if (ingredients.includes(ingredient.trim())) return;
     setIngredients([...ingredients, ingredient.trim()]);
     setIngredient("");
   };
 
-  {
-    /*remove ingredient func*/
-  }
   const removeIngredient = (index) => {
     setIngredients(ingredients.filter((_, i) => i !== index));
+  };
+
+  // Handle recipe selection for meal planner
+  const handleRecipeSelect = (recipe) => {
+    // Use stored params if available, otherwise use route params
+    const params = plannerParams || {
+      returnToPlanner: returnToPlanner,
+      date: plannerDate,
+      mealType: plannerMealType,
+      onSelect: plannerOnSelect
+    };
+
+    if (params?.returnToPlanner) {
+      console.log('🏠 HomeScreen: Navigating to RecipeDetails with planner params');
+      navigation.navigate("RecipeDetails", {
+        recipe: recipe,
+        returnToPlanner: true,
+        date: params.date,
+        mealType: params.mealType,
+        onSelect: params.onSelect,
+      });
+      // Clear after using
+      setPlannerParams(null);
+    } else {
+      navigation.navigate("RecipeDetails", { recipe: recipe });
+    }
   };
 
   return (
@@ -89,7 +139,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={true}
         contentContainerStyle={{ paddingBottom: 300 }}
       >
-        {/*avatar and bell icon*/}
+        {/* Avatar and Bell Icon */}
         <View className="px-4 flex-row justify-between items-center mb-2">
           <Image
             source={require("../assets/icons/avatar.png")}
@@ -101,7 +151,7 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/*greetings*/}
+        {/* Greetings */}
         <View className="mx-4 space-y-1 mb-4">
           <Text style={{ fontSize: 20, fontWeight: "bold" }}>
             Good morning {userData ? userData.displayName : "User"}!
@@ -114,14 +164,14 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/*search bar*/}
+        {/* Search Bar */}
         <View className="mx-4 flex-row items-center rounded-full bg-black/5 p-[6px]">
           <TextInput
             placeholder="Add ingredients"
             placeholderTextColor={"gray"}
             value={ingredient}
             onChangeText={setIngredient}
-            onSubmitEditing={addIngredient} //press enter on keyboard adds ingredient
+            onSubmitEditing={addIngredient}
             className="flex-1 text-base mb-2 pl-2"
             style={{ lineHeight: 24, height: 40 }}
           />
@@ -133,13 +183,13 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Dietary Filters*/}
+        {/* Dietary Filters */}
         <Categories
           onSelectDietary={setSelectedDietary}
           selectedDietary={selectedDietary}
         />
 
-        {/*Display selected ingredients */}
+        {/* Display Selected Ingredients */}
         {ingredients.length > 0 && (
           <View className="px-4 mt-4 mb-3">
             <Text className="font-bold mb-3">
@@ -161,11 +211,12 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/*Display recipes */}
+        {/* Loading State */}
         {recipeLoading && (
-          <Text className="px-4 text-gray">Finding recipes...</Text>
+          <Text className="px-4 text-gray-500">Finding recipes...</Text>
         )}
 
+        {/* Display Recipes */}
         {recipes.length > 0 && (
           <View className="px-4">
             <Text className="font-bold text-lg mb-4">
@@ -175,7 +226,7 @@ export default function HomeScreen() {
               <RecipeCard
                 key={recipe.id}
                 recipe={recipe}
-                onPress={() => console.log("Recipe pressed: ", recipe.title)}
+                onPress={() => handleRecipeSelect(recipe)}
               />
             ))}
           </View>
