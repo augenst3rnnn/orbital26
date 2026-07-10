@@ -60,6 +60,10 @@ export const updateUserProfile = async (userId, userData) => {
   /*get current authenticated user ID, throw error if no user is logged in*/
 }
 
+{
+  /*get current authenticated user ID, throw error if no user is logged in*/
+}
+
 export const getCurrentUserId = () => {
   const user = auth.currentUser;
   if (!user) {
@@ -68,6 +72,9 @@ export const getCurrentUserId = () => {
   return user.uid;
 };
 
+{
+  /*update user display name*/
+}
 {
   /*update user display name*/
 }
@@ -105,6 +112,10 @@ export const getFavoriteRecipes = async (userId) => {
   /*save a recipe to user's favourites*/
 }
 
+{
+  /*save a recipe to user's favourites*/
+}
+
 export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -115,6 +126,8 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
         image: recipeData.image,
         savedAt: new Date().toISOString(),
         summary: recipeData.summary || "",
+        ingredients:
+          recipeData.extendedIngredients || recipeData.ingredients || [],
         ingredients:
           recipeData.extendedIngredients || recipeData.ingredients || [],
         instructions: recipeData.instructions || [],
@@ -135,9 +148,13 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
 {
   /*remove user's favourite recipe*/
 }
+{
+  /*remove user's favourite recipe*/
+}
 export const removeFavoriteRecipe = async (userId, recipeId) => {
   try {
     const userRef = doc(db, "users", userId);
+    // Find the favorite entry with matching ID
     // Find the favorite entry with matching ID
     const userDoc = await getDoc(userRef);
     const favorites = userDoc.data()?.favoriteRecipes || [];
@@ -156,6 +173,9 @@ export const removeFavoriteRecipe = async (userId, recipeId) => {
   }
 };
 
+{
+  /*get user's profile with error handling*/
+}
 {
   /*get user's profile with error handling*/
 }
@@ -178,8 +198,22 @@ export const saveIngredient = async (
   ingredientData,
   addAmount = true,
 ) => {
+{
+  /*save an ingredient to user's inventory*/
+}
+export const saveIngredient = async (
+  userId,
+  ingredientId,
+  ingredientData,
+  addAmount = true,
+) => {
   try {
     const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      throw new Error("User document not found");
+    }
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) {
@@ -238,14 +272,61 @@ export const saveIngredient = async (
     } else {
       updatedInventory = [...currentInventory, newIngredient];
     }
+      expiryDate: ingredientData.expiryDate || "",
+    };
+
+    const currentInventory = userSnap.data().ingredientInventory || [];
+
+    {
+      /*check if ingredient is alr in inventory */
+    }
+    const existingIngredient = currentInventory.find(
+      (item) => item.id === ingredientId,
+    );
+
+    let updatedInventory;
+
+    if (existingIngredient) {
+      {
+        /*check unit mismatch*/
+      }
+      if (
+        existingIngredient.unit &&
+        newIngredient.unit &&
+        existingIngredient.unit !== newIngredient.unit
+      ) {
+        throw new Error("Unit Mismatch!");
+      }
+
+      updatedInventory = currentInventory.map((item) => {
+        if (item.id === ingredientId) {
+          return {
+            ...item,
+            //add if + (add) button, overwrite if ... (edit) button
+            amount: addAmount
+              ? Number(item.amount || 0) + Number(newIngredient.amount || 0)
+              : Number(newIngredient.amount || 0),
+            unit: newIngredient.unit,
+            expiryDate: newIngredient.expiryDate,
+          };
+        }
+
+        return item;
+      });
+    } else {
+      updatedInventory = [...currentInventory, newIngredient];
+    }
 
     await updateDoc(userRef, {
+      ingredientInventory: updatedInventory,
       ingredientInventory: updatedInventory,
     });
 
     console.log(`Ingredient ${ingredientData.name} saved to inventory`);
     return updatedInventory;
+    return updatedInventory;
   } catch (error) {
+    console.log("Error saving ingredient:", error);
     console.log("Error saving ingredient:", error);
     throw error;
   }
@@ -265,6 +346,7 @@ export const deleteIngredient = async (userId, ingredientToDelete) => {
 
     const currentInventory = userDoc.data()?.ingredientInventory || [];
 
+
     const updatedInventory = currentInventory.filter((ingredient) => {
       return ingredient.id !== ingredientToDelete.id;
     });
@@ -282,6 +364,9 @@ export const deleteIngredient = async (userId, ingredientToDelete) => {
 {
   /*get user's ingredient inventory*/
 }
+{
+  /*get user's ingredient inventory*/
+}
 export const getIngredientInventory = async (userId) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -296,4 +381,116 @@ export const getIngredientInventory = async (userId) => {
     console.error("Error fetching ingredient inventory:", error);
     return [];
   }
+};
+
+{
+  /* meal planner functions */
+}
+export const getMealPlanForWeek = async (userId, weekStart) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      const allMealPlans = data?.mealPlans || {};
+
+      const weekDates = getWeekDates(weekStart);
+      const weekPlan = {};
+      weekDates.forEach((date) => {
+        if (allMealPlans[date]) {
+          weekPlan[date] = allMealPlans[date];
+        } else {
+          weekPlan[date] = { breakfast: null, lunch: null, dinner: null };
+        }
+      });
+
+      return weekPlan;
+    }
+    return {};
+  } catch (error) {
+    console.error("Error fetching meal plan:", error);
+    return {};
+  }
+};
+
+{
+  /* save meal for a specific day and meal type */
+}
+export const saveMealForDay = async (userId, date, mealType, recipeData) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    const mealPlans = userDoc.data()?.mealPlans || {};
+
+    if (!mealPlans[date]) {
+      mealPlans[date] = { breakfast: null, lunch: null, dinner: null };
+    }
+
+    mealPlans[date][mealType] = {
+      id: recipeData.id,
+      title: recipeData.title,
+      image: recipeData.image,
+      summary: recipeData.summary || "",
+      ingredients: recipeData.ingredients || [],
+      instructions: recipeData.instructions || [],
+      readyInMinutes: recipeData.readyInMinutes || 20,
+      servings: recipeData.servings || 2,
+      calories: recipeData.calories || 0,
+      extendedIngredients: recipeData.extendedIngredients || [],
+    };
+
+    await updateDoc(userRef, {
+      mealPlans: mealPlans,
+      updatedAt: new Date().toISOString(),
+    });
+
+    console.log(`${mealType} saved for ${date}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error saving meal:", error);
+    throw error;
+  }
+};
+
+export const removeMealForDay = async (userId, date, mealType) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+    const mealPlans = userDoc.data()?.mealPlans || {};
+
+    if (mealPlans[date]) {
+      mealPlans[date][mealType] = null;
+      await updateDoc(userRef, {
+        mealPlans: mealPlans,
+        updatedAt: new Date().toISOString(),
+      });
+      console.log(`${mealType} removed for ${date}`);
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("Error removing meal:", error);
+    throw error;
+  }
+};
+
+//helper functions to get week start date and all dates in the week
+const getWeekStart = (date) => {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  return d.toISOString().split("T")[0];
+};
+
+const getWeekDates = (weekStart) => {
+  const dates = [];
+  const start = new Date(weekStart);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    dates.push(d.toISOString().split("T")[0]);
+  }
+  return dates;
 };
