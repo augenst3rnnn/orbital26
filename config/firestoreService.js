@@ -60,10 +60,6 @@ export const updateUserProfile = async (userId, userData) => {
   /*get current authenticated user ID, throw error if no user is logged in*/
 }
 
-{
-  /*get current authenticated user ID, throw error if no user is logged in*/
-}
-
 export const getCurrentUserId = () => {
   const user = auth.currentUser;
   if (!user) {
@@ -72,9 +68,6 @@ export const getCurrentUserId = () => {
   return user.uid;
 };
 
-{
-  /*update user display name*/
-}
 {
   /*update user display name*/
 }
@@ -111,11 +104,6 @@ export const getFavoriteRecipes = async (userId) => {
 {
   /*save a recipe to user's favourites*/
 }
-
-{
-  /*save a recipe to user's favourites*/
-}
-
 export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -148,9 +136,6 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
 {
   /*remove user's favourite recipe*/
 }
-{
-  /*remove user's favourite recipe*/
-}
 export const removeFavoriteRecipe = async (userId, recipeId) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -176,9 +161,6 @@ export const removeFavoriteRecipe = async (userId, recipeId) => {
 {
   /*get user's profile with error handling*/
 }
-{
-  /*get user's profile with error handling*/
-}
 export const getUserProfileWithAuth = async () => {
   try {
     const userId = getCurrentUserId();
@@ -198,22 +180,8 @@ export const saveIngredient = async (
   ingredientData,
   addAmount = true,
 ) => {
-{
-  /*save an ingredient to user's inventory*/
-}
-export const saveIngredient = async (
-  userId,
-  ingredientId,
-  ingredientData,
-  addAmount = true,
-) => {
   try {
     const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-      throw new Error("User document not found");
-    }
     const userSnap = await getDoc(userRef);
 
     if (!userSnap.exists()) {
@@ -272,61 +240,14 @@ export const saveIngredient = async (
     } else {
       updatedInventory = [...currentInventory, newIngredient];
     }
-      expiryDate: ingredientData.expiryDate || "",
-    };
-
-    const currentInventory = userSnap.data().ingredientInventory || [];
-
-    {
-      /*check if ingredient is alr in inventory */
-    }
-    const existingIngredient = currentInventory.find(
-      (item) => item.id === ingredientId,
-    );
-
-    let updatedInventory;
-
-    if (existingIngredient) {
-      {
-        /*check unit mismatch*/
-      }
-      if (
-        existingIngredient.unit &&
-        newIngredient.unit &&
-        existingIngredient.unit !== newIngredient.unit
-      ) {
-        throw new Error("Unit Mismatch!");
-      }
-
-      updatedInventory = currentInventory.map((item) => {
-        if (item.id === ingredientId) {
-          return {
-            ...item,
-            //add if + (add) button, overwrite if ... (edit) button
-            amount: addAmount
-              ? Number(item.amount || 0) + Number(newIngredient.amount || 0)
-              : Number(newIngredient.amount || 0),
-            unit: newIngredient.unit,
-            expiryDate: newIngredient.expiryDate,
-          };
-        }
-
-        return item;
-      });
-    } else {
-      updatedInventory = [...currentInventory, newIngredient];
-    }
 
     await updateDoc(userRef, {
-      ingredientInventory: updatedInventory,
       ingredientInventory: updatedInventory,
     });
 
     console.log(`Ingredient ${ingredientData.name} saved to inventory`);
     return updatedInventory;
-    return updatedInventory;
   } catch (error) {
-    console.log("Error saving ingredient:", error);
     console.log("Error saving ingredient:", error);
     throw error;
   }
@@ -346,7 +267,6 @@ export const deleteIngredient = async (userId, ingredientToDelete) => {
 
     const currentInventory = userDoc.data()?.ingredientInventory || [];
 
-
     const updatedInventory = currentInventory.filter((ingredient) => {
       return ingredient.id !== ingredientToDelete.id;
     });
@@ -361,9 +281,6 @@ export const deleteIngredient = async (userId, ingredientToDelete) => {
   }
 };
 
-{
-  /*get user's ingredient inventory*/
-}
 {
   /*get user's ingredient inventory*/
 }
