@@ -9,11 +9,28 @@ import {
   TextInput,
   Pressable,
   FlatList,
+  Alert,
 } from "react-native";
+import useAuth from "../../config/hooks/useAuth";
+import {
+  getIngredientInventory,
+  getGroceryList,
+  updateIngredientStatus,
+} from "../../config/firestoreService";
+import {
+  getIngredientStatus,
+  ingredientsMatch,
+} from "../../config/services/groceryUtils";
 
 export default function FullIngredientsScreen({ navigation, route }) {
   const { recipe } = route.params;
+  const { user } = useAuth();
+
+  const [ingredientInventory, setIngredientInventory] = useState([]);
+  const [groceryList, setGroceryList] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
+
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const ingredients = recipe.extendedIngredients || recipe.ingredients || [];
 
@@ -24,22 +41,163 @@ export default function FullIngredientsScreen({ navigation, route }) {
   const progress = ingredientCount > 0 ? haveCount / ingredientCount : 0;
 
   const renderIngredient = ({ item }) => {
+    const status = getIngredientStatus(item, ingredientInventory, groceryList);
+
+    const isSelected =
+      selectedIngredient && ingredientsMatch(selectedIngredient, item);
+
+    const anotherIngredientSelected = selectedIngredient && !isSelected;
+
     return (
       <TouchableOpacity
         className="flex-row items-center py-3"
+        style={{
+          opacity: anotherIngredientSelected ? 0.2 : 1,
+          transform: [
+            {
+              scale: isSelected ? 1.03 : 1,
+            },
+          ],
+        }}
         onPress={() => setSelectedIngredient(item)}
+        activeOpacity={0.8}
       >
-        {/*temporary checklist circle*/}
-        <View className="w-6 h-6 rounded-full border-2 border-gray-300 mr-3" />
-        <Text className="flex-1 text-base text-black">
-          {item.name || item.originalName}
+        {/*colour of buttons*/}
+        <View
+          className={[
+            "w-6 h-6 rounded-full mr-3 items-center justify-center",
+            status === "have"
+              ? "bg-purple-700"
+              : status === "inCart"
+                ? "bg-gray-300"
+                : "border-2 border-gray-300 bg-white",
+          ].join(" ")}
+        >
+          {(status === "have" || status === "inCart") && (
+            <Text className="text-white font-bold">✔</Text>
+          )}
+        </View>
+
+        {/*colour of text*/}
+        <Text
+          className={[
+            "flex-1 text-lg",
+            status === "inCart" ? "text-gray-400" : "text-black",
+          ].join(" ")}
+        >
+          {item.name}
         </Text>
 
-        <Text className="text-gray-600">
+        <Text
+          className={[
+            "text-base",
+            status === "inCart" ? "text-gray-400" : "text-gray-600",
+          ].join(" ")}
+        >
           {item.amount} {item.unit}
         </Text>
       </TouchableOpacity>
     );
+  };
+
+  //status-change handler
+  const handleUpdateStatus = async (newStatus) => {
+    if (!selectedIngredient || !user?.uid || isUpdating) {
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+
+      const updatedData = await updateIngredientStatus(
+        user.uid,
+        selectedIngredient,
+        newStatus,
+      );
+
+      //update UI using the returned arrays
+      setIngredientInventory(updatedData.ingredientInventory);
+
+      setGroceryList(updatedData.groceryList);
+
+      setSelectedIngredient(null);
+    } catch (error) {
+      Alert.alert("Unable to update ingredient", "Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  //fetch inventory & grocery list in state
+  useEffect(() => {
+    const fetchIngredientStatuses = async () => {
+      if (!user?.uid) {
+        return;
+      }
+
+      try {
+        const [inventoryData, groceryData] = await Promise.all([
+          getIngredientInventory(user.uid),
+          getGroceryList(user.uid),
+        ]);
+
+        setIngredientInventory(inventoryData);
+        setGroceryList(groceryData);
+      } catch (error) {
+        console.log("Error fetching ingredient statuses:", error);
+      }
+    };
+
+    fetchIngredientStatuses();
+  }, [user?.uid]);
+
+  //confirmation alerts
+  const confirmStatusChange = (newStatus) => {
+    if (!selectedIngredient) {
+      return;
+    }
+
+    const ingredientName = selectedIngredient.name || "this ingredient";
+
+    if (newStatus === "have") {
+      Alert.alert(
+        "Add to inventory?",
+        `Add ${ingredientName} to your inventory?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Add",
+            onPress: () => handleUpdateStatus("have"),
+          },
+        ],
+      );
+
+      return;
+    }
+
+    if (newStatus === "inCart") {
+      Alert.alert(
+        "Add to cart?",
+        `Mark ${ingredientName} as in your grocery cart?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Add",
+            onPress: () => handleUpdateStatus("inCart"),
+          },
+        ],
+      );
+
+      return;
+    }
+
+    handleUpdateStatus("toBuy");
   };
 
   return (
@@ -69,7 +227,7 @@ export default function FullIngredientsScreen({ navigation, route }) {
             />
 
             <View className="flex-1 px-4 py-3 justify-center">
-              <Text className="text-lg font-bold text-black">
+              <Text className="text-lg font-bold text-black" numberOfLines={2}>
                 {recipe.title}
               </Text>
 
@@ -79,7 +237,7 @@ export default function FullIngredientsScreen({ navigation, route }) {
 
               <View className="h-3 bg-purple-100 rounded-full mt-2 overflow-hidden">
                 <View
-                  className="h-full bg-purple-500 rounded-full"
+                  className="h-full bg-purple-600 rounded-full"
                   style={{
                     width: `${progress * 100}%`,
                   }}
@@ -103,6 +261,52 @@ export default function FullIngredientsScreen({ navigation, route }) {
           />
         </View>
       </View>
+
+      {/*have, don't have, in grocery list buttons*/}
+      <View
+        className={[
+          "px-8 flex-row justify-between items-center",
+          selectedIngredient ? "pt-6 pb-12 rounded-3xl shadow-lg" : "pt-5 pb-5",
+        ].join(" ")}
+      >
+        <View className="flex-row items-center pt-10 mb-20">
+          <TouchableOpacity
+            disabled={!selectedIngredient || isUpdating}
+            onPress={() => confirmStatusChange("have")}
+          >
+            <View className="w-6 h-6 rounded-full bg-purple-700 mr-1" />
+          </TouchableOpacity>
+          <Text className={selectedIngredient ? "text-black" : "text-gray-400"}>
+            Have it
+          </Text>
+        </View>
+
+        <View className="flex-row items-center pt-10 mb-20">
+          <TouchableOpacity
+            disabled={!selectedIngredient || isUpdating}
+            onPress={() => confirmStatusChange("toBuy")}
+          >
+            <View className="w-6 h-6 rounded-full border-2 border-gray-300 mr-1" />
+          </TouchableOpacity>
+          <Text className={selectedIngredient ? "text-black" : "text-gray-400"}>
+            Don't have
+          </Text>
+        </View>
+
+        <View className="flex-row items-center pt-10 mb-20">
+          <TouchableOpacity
+            disabled={!selectedIngredient || isUpdating}
+            onPress={() => confirmStatusChange("inCart")}
+          >
+            <View className="w-6 h-6 rounded-full bg-gray-200 mr-1" />
+          </TouchableOpacity>
+          <Text className={selectedIngredient ? "text-black" : "text-gray-400"}>
+            In grocery list
+          </Text>
+        </View>
+      </View>
+
+      {/*write code to unselect ingredient by tapping somewhere else*/}
 
       {/*back button*/}
       <TouchableOpacity

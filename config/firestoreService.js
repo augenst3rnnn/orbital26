@@ -411,3 +411,105 @@ const getWeekDates = (weekStart) => {
   }
   return dates;
 };
+
+//FullIngredientsScreen helper functions
+{
+  /*get user's grocery list*/
+}
+export const getGroceryList = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnapshot = await getDoc(userRef);
+
+    if (!userSnapshot.exists()) {
+      return [];
+    }
+
+    return userSnapshot.data().groceryList || [];
+  } catch (error) {
+    console.log("Error fetching grocery list:", error);
+    return [];
+  }
+};
+
+const normalizeIngredientName = (name = "") => name.trim().toLowerCase();
+
+const isSameIngredient = (item1, item2) => {
+  if (item1.id != null && item2.id != null) {
+    return String(item1.id) === String(item2.id);
+  }
+
+  return (
+    normalizeIngredientName(item1?.name) ===
+    normalizeIngredientName(item2?.name)
+  );
+};
+
+export const updateIngredientStatus = async (userId, ingredient, newStatus) => {
+  try {
+    if (!userId) {
+      throw new Error("No user is currently logged in.");
+    }
+
+    const userRef = doc(db, "users", userId);
+    const userSnapshot = await getDoc(userRef);
+
+    if (!userSnapshot.exists()) {
+      throw new Error("User document does not exist.");
+    }
+
+    const userData = userSnapshot.data();
+
+    let ingredientInventory = userData.ingredientInventory || [];
+    let groceryList = userData.groceryList || [];
+
+    //remove ingredient from both arrays first
+    ingredientInventory = ingredientInventory.filter(
+      (inventoryIngredient) =>
+        !isSameIngredient(inventoryIngredient, ingredient),
+    );
+
+    groceryList = groceryList.filter(
+      (groceryIngredient) => !isSameIngredient(groceryIngredient, ingredient),
+    );
+
+    const ingredientData = {
+      id: ingredient.id ?? null,
+      name: ingredient.name,
+      amount: ingredient.amount ?? "",
+      original: ingredient.original ?? "",
+      unit: ingredient.unit ?? "",
+      image: ingredient.image ?? "",
+      aisle: ingredient.aisle ?? "",
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (newStatus === "have") {
+      ingredientInventory.push({
+        ...ingredientData,
+        savedAt: new Date().toISOString(),
+      });
+    }
+
+    if (newStatus === "toBuy" || newStatus === "inCart") {
+      groceryList.push({
+        ...ingredientData,
+        status: newStatus,
+        savedAt: new Date().toDateString(),
+      });
+    }
+
+    await updateDoc(userRef, {
+      ingredientInventory,
+      groceryList,
+    });
+
+    return {
+      ingredientInventory,
+      groceryList,
+    };
+  } catch (error) {
+    console.log("Error updating ingredient status:", error);
+    throw error;
+  }
+};
