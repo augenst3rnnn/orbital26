@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -34,11 +34,18 @@ export default function FullIngredientsScreen({ navigation, route }) {
 
   const ingredients = recipe.extendedIngredients || recipe.ingredients || [];
 
-  const ingredientCount = ingredients.length;
-  const missingCount = recipe.missingIngredients?.length || 0;
-  const haveCount = ingredientCount - missingCount;
+  const haveCount = useMemo(() => {
+    return ingredients.filter((ingredient) => {
+      return (
+        getIngredientStatus(ingredient, ingredientInventory, groceryList) ===
+        "have"
+      );
+    }).length;
+  }, [ingredients, ingredientInventory, groceryList]);
 
-  const progress = ingredientCount > 0 ? haveCount / ingredientCount : 0;
+  const totalIngredients = ingredients.length;
+
+  const progress = totalIngredients > 0 ? haveCount / totalIngredients : 0;
 
   const renderIngredient = ({ item }) => {
     const status = getIngredientStatus(item, ingredientInventory, groceryList);
@@ -59,7 +66,10 @@ export default function FullIngredientsScreen({ navigation, route }) {
             },
           ],
         }}
-        onPress={() => setSelectedIngredient(item)}
+        onPress={(event) => {
+          event.stopPropagation();
+          setSelectedIngredient(item);
+        }}
         activeOpacity={0.8}
       >
         {/*colour of buttons*/}
@@ -74,7 +84,12 @@ export default function FullIngredientsScreen({ navigation, route }) {
           ].join(" ")}
         >
           {(status === "have" || status === "inCart") && (
-            <Text className="text-white font-bold">✔</Text>
+            <View>
+              <Image
+                source={require("../../assets/icons/whiteTick.png")}
+                className="w-6 h-6"
+              />
+            </View>
           )}
         </View>
 
@@ -181,7 +196,7 @@ export default function FullIngredientsScreen({ navigation, route }) {
     if (newStatus === "inCart") {
       Alert.alert(
         "Add to cart?",
-        `Mark ${ingredientName} as in your grocery cart?`,
+        `Add ${ingredientName} to your grocery cart?`,
         [
           {
             text: "Cancel",
@@ -212,7 +227,11 @@ export default function FullIngredientsScreen({ navigation, route }) {
       </View>
 
       {/*white body*/}
-      <View className="flex-1 bg-white rounded-t-[40px] px-6 pt-6 -mt-10">
+      <Pressable
+        className="flex-1 bg-white rounded-t-[40px] px-6 pt-6 -mt-10"
+        //unhighlight panel by clicking anywhere else
+        onPress={() => setSelectedIngredient(null)}
+      >
         <Text className="text-gray-600 pl-2 pt-1 pb-4">
           Check off ingredients as you get them!
         </Text>
@@ -222,7 +241,7 @@ export default function FullIngredientsScreen({ navigation, route }) {
           <View className="flex-row border-b border-gray-300">
             <Image
               source={{ uri: recipe.image }}
-              className="w-28 h-28"
+              className="w-28 h-full"
               resizeMode="cover"
             />
 
@@ -232,7 +251,7 @@ export default function FullIngredientsScreen({ navigation, route }) {
               </Text>
 
               <Text className="text-sm text-gray-600 mt-1">
-                {haveCount} of {ingredientCount} ingredients
+                {haveCount} of {totalIngredients} ingredients
               </Text>
 
               <View className="h-3 bg-purple-100 rounded-full mt-2 overflow-hidden">
@@ -260,53 +279,73 @@ export default function FullIngredientsScreen({ navigation, route }) {
             }}
           />
         </View>
-      </View>
+      </Pressable>
 
       {/*have, don't have, in grocery list buttons*/}
-      <View
+      <Pressable
+        onPress={(event) => event.stopPropagation()}
         className={[
           "px-8 flex-row justify-between items-center",
-          selectedIngredient ? "pt-6 pb-12 rounded-3xl shadow-lg" : "pt-5 pb-5",
+          selectedIngredient
+            ? "pt-12 pb-12 rounded-3xl border-2 border-gray-200 mx-4 mb-8 shadow-3xl"
+            : "pt-5 pb-5",
         ].join(" ")}
       >
-        <View className="flex-row items-center pt-10 mb-20">
-          <TouchableOpacity
-            disabled={!selectedIngredient || isUpdating}
-            onPress={() => confirmStatusChange("have")}
-          >
-            <View className="w-6 h-6 rounded-full bg-purple-700 mr-1" />
-          </TouchableOpacity>
-          <Text className={selectedIngredient ? "text-black" : "text-gray-400"}>
-            Have it
-          </Text>
-        </View>
+        <View className="w-full flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              disabled={!selectedIngredient || isUpdating}
+              onPress={() => confirmStatusChange("have")}
+            >
+              <View className="w-6 h-6 rounded-full bg-purple-700 mr-1" />
+            </TouchableOpacity>
+            <Text
+              className={
+                selectedIngredient
+                  ? "text-lg text-black font-bold"
+                  : "text-gray-400"
+              }
+            >
+              Have it
+            </Text>
+          </View>
 
-        <View className="flex-row items-center pt-10 mb-20">
-          <TouchableOpacity
-            disabled={!selectedIngredient || isUpdating}
-            onPress={() => confirmStatusChange("toBuy")}
-          >
-            <View className="w-6 h-6 rounded-full border-2 border-gray-300 mr-1" />
-          </TouchableOpacity>
-          <Text className={selectedIngredient ? "text-black" : "text-gray-400"}>
-            Don't have
-          </Text>
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              disabled={!selectedIngredient || isUpdating}
+              onPress={() => confirmStatusChange("toBuy")}
+            >
+              <View className="w-6 h-6 rounded-full border-2 border-gray-300 mr-1" />
+            </TouchableOpacity>
+            <Text
+              className={
+                selectedIngredient
+                  ? "text-lg text-black font-bold"
+                  : "text-gray-400"
+              }
+            >
+              Don't have
+            </Text>
+          </View>
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              disabled={!selectedIngredient || isUpdating}
+              onPress={() => confirmStatusChange("inCart")}
+            >
+              <View className="w-6 h-6 rounded-full bg-gray-200 mr-1" />
+            </TouchableOpacity>
+            <Text
+              className={
+                selectedIngredient
+                  ? "text-lg text-black font-bold"
+                  : "text-gray-400"
+              }
+            >
+              In cart
+            </Text>
+          </View>
         </View>
-
-        <View className="flex-row items-center pt-10 mb-20">
-          <TouchableOpacity
-            disabled={!selectedIngredient || isUpdating}
-            onPress={() => confirmStatusChange("inCart")}
-          >
-            <View className="w-6 h-6 rounded-full bg-gray-200 mr-1" />
-          </TouchableOpacity>
-          <Text className={selectedIngredient ? "text-black" : "text-gray-400"}>
-            In grocery list
-          </Text>
-        </View>
-      </View>
-
-      {/*write code to unselect ingredient by tapping somewhere else*/}
+      </Pressable>
 
       {/*back button*/}
       <TouchableOpacity

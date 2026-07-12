@@ -13,14 +13,62 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mockRecipes } from "../../data/mockRecipes";
 import { useDebounce } from "../../config/hooks/useDebounce";
-import { mockInventory } from "../../data/mockInventory";
-import { mockMissingIngredients } from "../../data/mockMissingIngredients";
-import { mockGroceryList } from "../../data/mockGroceryList";
-import EditIngredientModal from "../../components/EditIngredientModal";
+import { getGroceryList } from "../../config/firestoreService";
+import useAuth from "../../config/hooks/useAuth";
 
 export default function MissingIngredientsScreen({ navigation }) {
+  const { user } = useAuth();
+  const [groceryList, setGroceryList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [selectedFilter, setSelectedFilter] = useState("all");
+
+  useEffect(() => {
+    const fetchGroceryList = async () => {
+      if (!user?.uid) {
+        setGroceryList([]);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+
+        const storedGroceryList = await getGroceryList(user.uid);
+        setGroceryList(storedGroceryList);
+      } catch (error) {
+        console.log("Error fetching grocery list:", error);
+        setGroceryList([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGroceryList();
+  }, [user?.uid]);
+
+  const filters = [
+    { label: "All", value: "all" },
+    { label: "To Buy", value: "toBuy" },
+    { label: "In Cart", value: "inCart" },
+  ];
+
+  const filteredGroceryList = groceryList.filter((ingredient) => {
+    if (selectedFilter == "all") {
+      return true;
+    }
+
+    return ingredient.status === selectedFilter;
+  });
+
+  const toBuyCount = groceryList.filter(
+    (ingredient) => ingredient.status === "toBuy",
+  ).length;
+
+  const inCartCount = groceryList.filter(
+    (ingredient) => ingredient.status === "inCart",
+  ).length;
 
   return (
     <View className="flex-1 bg-white">
@@ -33,10 +81,35 @@ export default function MissingIngredientsScreen({ navigation }) {
 
       <View className="flex-1 bg-white rounded-t-[40px] px-6 pt-6 -mt-10">
         {/*toggle bar*/}
-        <View className="bg-gray-100 rounded-full py-4 mr-4 ml-4 items-center mb-6 shadow-lg">
-          <Text className="text-gray-400 mr-3">All/ To Buy/ In Cart</Text>
-        </View>
+        <View className="flex-row bg-white border-gray-300 border-b border-r rounded-full mr-4 my-2 ml-4 mb-6 shadow-lg">
+          {filters.map((filter) => {
+            const isSelected = selectedFilter === filter.value;
 
+            let count = groceryList.length;
+
+            if (filter.value === "toBuy") {
+              count = toBuyCount;
+            }
+
+            if (filter.value === "inCart") {
+              count = inCartCount;
+            }
+
+            return (
+              <TouchableOpacity
+                key={filter.value}
+                onPress={() => setSelectedFilter(filter.value)}
+                className={`flex-1 items-center rounded-full py-3 ${
+                  isSelected ? "bg-yellow-400" : "bg-white"
+                }`}
+              >
+                <Text className="font-semibold">
+                  {filter.label} ({count})
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
         {/*body*/}
         <ScrollView></ScrollView>
       </View>
