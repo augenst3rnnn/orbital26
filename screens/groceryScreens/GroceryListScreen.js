@@ -28,7 +28,11 @@ import {
   getMissingIngredientsForRecipe,
   ingredientsMatch,
 } from "../../config/services/groceryUtils";
-import { setSignature } from "react-refresh";
+import {
+  searchIngredientByName,
+  getIngredientInformation,
+} from "../../config/services/spoonacularService";
+import AddIngredientModal from "../../components/AddIngredientModal";
 
 export default function MissingIngredientsScreen({ navigation }) {
   const { user } = useAuth();
@@ -39,6 +43,7 @@ export default function MissingIngredientsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [showAddModal, setShowAddModal] = useState(false);
 
   //fetch fav recipes, ingredient inventory, & grocery list at once
   //useFocusEffect - follow changes in state in FullIngredientsScreen
@@ -86,14 +91,6 @@ export default function MissingIngredientsScreen({ navigation }) {
     { label: "To Buy", value: "toBuy" },
     { label: "In Cart", value: "inCart" },
   ];
-
-  const filteredGroceryList = groceryList.filter((ingredient) => {
-    if (selectedFilter == "all") {
-      return true;
-    }
-
-    return ingredient.status === selectedFilter;
-  });
 
   const allMissingIngredients = favRecipes.flatMap((recipe) =>
     getMissingIngredientsForRecipe(
@@ -183,28 +180,6 @@ export default function MissingIngredientsScreen({ navigation }) {
     }
   };
 
-  /*
-  const handleTickIngredient = async (ingredient) => {
-    if (!user?.uid) {
-      return;
-    }
-
-    try {
-      const { status, ...inventoryIngredient } = ingredient; //remove status property
-
-      await saveIngredient(user.uid, ingredient.id, inventoryIngredient);
-
-      await deleteGroceryIngredient(user.uid, ingredient);
-
-      setGroceryList((currentList) =>
-        currentList.filter((item) => !ingredientsMatch(item, ingredient)),
-      );
-    } catch (error) {
-      console.log("Error moving ingredient to inventory", error);
-      Alert.alert("Error", "Could not move the ingredient to your inventory.");
-    }
-  };*/
-
   const ToBuyRow = ({ ingredient, onAddToCart }) => {
     return (
       <View className="flex-row items-center py-3">
@@ -279,6 +254,77 @@ export default function MissingIngredientsScreen({ navigation }) {
         ))}
       </View>
     );
+  };
+
+  const handleAddGroceryIngredient = async ({ name, amount, unit }) => {
+    try {
+      if (!user?.uid) return;
+
+      if (!name.trim()) {
+        Alert.alert("Missing name", "Please enter an ingredient name.");
+        return;
+      }
+
+      {
+        /*check valid amount if user input amount*/
+      }
+      let cleanedAmount = "";
+
+      if (amount.trim() !== "") {
+        const amountNumber = Number(amount);
+
+        if (isNaN(amountNumber) || amountNumber <= 0) {
+          Alert.alert("Invalid amount", "Please enter a valid amount.");
+          return;
+        }
+
+        cleanedAmount = amountNumber;
+      }
+
+      //searchIngredientByName returns array of size5 => extract top result
+      const ingredientResults = await searchIngredientByName(name);
+      if (!ingredientResults || ingredientResults.length === 0) {
+        Alert.alert(
+          "Ingredient not found",
+          "Please try another ingredient name.",
+        );
+        return;
+      }
+
+      const topIngredient = ingredientResults[0]; //await ensures promise => array
+
+      let fullIngredientData = topIngredient;
+
+      if (topIngredient?.id) {
+        fullIngredientData = await getIngredientInformation(topIngredient.id);
+      }
+
+      const updatedGroceryList = await saveGroceryIngredient(
+        user.uid,
+        fullIngredientData.id,
+        {
+          name: topIngredient.name ?? name.trim(),
+          amount: cleanedAmount || "", //amount & unit are optional
+          unit: unit?.trim().toLowerCase() || "",
+          image: fullIngredientData.image || "",
+          aisle: fullIngredientData.aisle || "",
+        },
+      );
+
+      setGroceryList(updatedGroceryList);
+      setShowAddModal(false);
+    } catch (error) {
+      if (error.message === "Unit Mismatch!") {
+        Alert.alert(
+          "Different unit",
+          "This ingredient already exists with a different unit. Please use the same unit before adding to inventory.",
+        );
+        return;
+      }
+
+      console.error("Error adding ingredient:", error);
+      Alert.alert("Error", "Could not add ingredient.");
+    }
   };
 
   return (
@@ -369,9 +415,19 @@ export default function MissingIngredientsScreen({ navigation }) {
       </TouchableOpacity>
 
       {/*add item button*/}
-      <TouchableOpacity className="absolute bottom-10 left-10 right-10 items-center bg-yellow-400 rounded-3xl px-6 py-2 mb-10">
+      <TouchableOpacity
+        className="absolute bottom-10 left-10 right-10 items-center bg-yellow-400 rounded-3xl px-6 py-2 mb-10"
+        onPress={() => setShowAddModal(true)}
+      >
         <Text className="text-black text-lg">+ Add item</Text>
       </TouchableOpacity>
+
+      {/*add ingredient modal popup*/}
+      <AddIngredientModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddGroceryIngredient}
+      />
     </View>
   );
 }
