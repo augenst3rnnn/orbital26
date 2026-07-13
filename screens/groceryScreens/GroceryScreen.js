@@ -24,6 +24,7 @@ import {
   getFavoriteRecipes,
   saveIngredient,
   getGroceryList,
+  saveGroceryIngredient,
 } from "../../config/firestoreService";
 import useAuth from "../../config/hooks/useAuth";
 import { getMissingIngredientsForRecipe } from "../../config/services/groceryUtils";
@@ -89,6 +90,7 @@ export default function GroceryScreen({ navigation }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedIng, setSelectedIng] = useState(null);
   const [ingredientInventory, setIngredientInventory] = useState([]);
+  const [groceryList, setGroceryList] = useState([]);
 
   //fetch inventory couunt from firestore
   useFocusEffect(
@@ -234,7 +236,13 @@ export default function GroceryScreen({ navigation }) {
     }
   }, [debouncedSearchQuery, isSearching]);*/
 
-  const handleAddIngredient = async ({ name, amount, unit, ingredient }) => {
+  //add to CART
+  const handleAddIngredientToCart = async ({
+    name,
+    amount,
+    unit,
+    ingredient,
+  }) => {
     try {
       if (!amount.trim()) {
         Alert.alert("Missing amount", "Please enter an amount.");
@@ -273,13 +281,13 @@ export default function GroceryScreen({ navigation }) {
         expiryDate: "",
       };
 
-      const updatedInventory = await saveIngredient(
+      const updatedGroceryCart = await saveGroceryIngredient(
         user.uid,
         ingredient.id,
         ingredientToSave,
       );
 
-      setIngredientInventory(updatedInventory);
+      setGroceryList(updatedGroceryCart);
       setShowAddModal(false);
       setSelectedIng(null);
     } catch (error) {
@@ -439,7 +447,7 @@ export default function GroceryScreen({ navigation }) {
           setShowAddModal(false);
           setSelectedIng(null);
         }}
-        onSave={handleAddIngredient}
+        onSave={handleAddIngredientToCart}
       />
     </View>
   );
