@@ -23,6 +23,7 @@ import {
   getIngredientInventory,
   getFavoriteRecipes,
   saveIngredient,
+  getGroceryList,
 } from "../../config/firestoreService";
 import useAuth from "../../config/hooks/useAuth";
 import { getMissingIngredientsForRecipe } from "../../config/services/groceryUtils";
@@ -83,12 +84,11 @@ export default function GroceryScreen({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [inventoryCount, setInventoryCount] = useState(0);
   const [missingCount, setMissingCount] = useState(0);
+  const [groceryCount, setGroceryCount] = useState(0);
   const [ingSearchResults, setIngSearchResults] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedIng, setSelectedIng] = useState(null);
   const [ingredientInventory, setIngredientInventory] = useState([]);
-
-  const groceryCount = mockGroceryList.length;
 
   //fetch inventory couunt from firestore
   useFocusEffect(
@@ -120,6 +120,20 @@ export default function GroceryScreen({ navigation }) {
       };
 
       fetchMissingCount();
+    }, [user?.uid]),
+  );
+
+  //fetch grocery count from firestore
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.uid) return;
+
+      const fetchGroceryCount = async () => {
+        const groceryList = await getGroceryList(user.uid);
+        setGroceryCount(groceryList.length);
+      };
+
+      fetchGroceryCount();
     }, [user?.uid]),
   );
 

@@ -7,6 +7,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
+import { ingredientsMatch } from "./services/groceryUtils";
 
 export const getUserProfile = async (userId) => {
   try {
@@ -445,7 +446,11 @@ const isSameIngredient = (item1, item2) => {
   );
 };
 
-export const updateIngredientStatus = async (userId, ingredient, newStatus) => {
+export const updateIngredientStatus = async (
+  userId,
+  selectedIngredient,
+  newStatus,
+) => {
   try {
     if (!userId) {
       throw new Error("No user is currently logged in.");
@@ -460,11 +465,77 @@ export const updateIngredientStatus = async (userId, ingredient, newStatus) => {
 
     const userData = userSnapshot.data();
 
-    let ingredientInventory = userData.ingredientInventory || [];
-    let groceryList = userData.groceryList || [];
+    let updatedInventory = userData.ingredientInventory || [];
+    let updatedGroceryList = userData.groceryList || [];
 
-    //remove ingredient from both arrays first
-    ingredientInventory = ingredientInventory.filter(
+    const isMatchingIngredient = (ingredient) =>
+      ingredient.id === selectedIngredient.id ||
+      ingredient.name?.toLowerCase() === selectedIngredient.name?.toLowerCase();
+
+    if (newStatus === "have") {
+      //remove from cart(grocery list) & add to inventory
+      updatedGroceryList = updatedGroceryList.filter(
+        (ingredient) => !isMatchingIngredient(ingredient),
+      );
+
+      const alreadyInInventory = updatedInventory.some(isMatchingIngredient);
+
+      //remove status field before adding to grocery
+      if (!alreadyInInventory) {
+        const { status, ...inventoryIngredient } = selectedIngredient;
+
+        updatedInventory = [...updatedInventory, inventoryIngredient];
+      }
+    }
+
+    if (newStatus === "inCart") {
+      //remove from inventory, add to cart(grocery list)
+      updatedInventory = updatedInventory.filter(
+        (ingredient) => !isMatchingIngredient(ingredient),
+      );
+
+      const existingCartIngredient =
+        updatedGroceryList.some(isMatchingIngredient);
+
+      if (!existingCartIngredient) {
+        updatedGroceryList = [
+          ...updatedGroceryList,
+          {
+            ...selectedIngredient,
+            status: "inCart",
+          },
+        ];
+      }
+    }
+
+    if (newStatus === "toBuy") {
+      //remove from both inventory & grocery list(cart)
+      updatedInventory = updatedInventory.filter(
+        (ingredient) => !isMatchingIngredient(ingredient),
+      );
+
+      updatedGroceryList = updatedGroceryList.filter(
+        (ingredient) => !isMatchingIngredient(ingredient),
+      );
+    }
+
+    await updateDoc(userRef, {
+      ingredientInventory: updatedInventory,
+      groceryList: updatedGroceryList,
+    });
+
+    return {
+      ingredientInventory: updatedInventory,
+      groceryList: updatedGroceryList,
+    };
+  } catch (error) {
+    console.log("Error updating ingredient status:", error);
+    throw error;
+  }
+};
+
+//remove ingredient from both arrays first
+/*ingredientInventory = ingredientInventory.filter(
       (inventoryIngredient) =>
         !isSameIngredient(inventoryIngredient, ingredient),
     );
@@ -510,6 +581,74 @@ export const updateIngredientStatus = async (userId, ingredient, newStatus) => {
     };
   } catch (error) {
     console.log("Error updating ingredient status:", error);
+    throw error;
+  }
+};*/
+
+export const saveGroceryIngredient = async (
+  userId,
+  ingredientId,
+  ingredientData,
+) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    const newIngredient = {
+      id: ingredientId,
+      ...ingredientData,
+      status: "inCart",
+    };
+
+    if (!userDoc.exists()) {
+      await setDoc(userRef, {
+        groceryList: [newIngredient],
+      });
+
+      return;
+    }
+
+    const currentGroceryList = userDoc.data()?.groceryList || [];
+
+    const alreadyExists = currentGroceryList.some(
+      (ingredient) =>
+        ingredient.id === newIngredient.id ||
+        ingredient.name?.toLowerCase() === newIngredient.name?.toLowerCase(),
+    );
+
+    if (alreadyExists) {
+      return;
+    }
+
+    await updateDoc(userRef, {
+      groceryList: [...currentGroceryList, newIngredient],
+    });
+  } catch (error) {
+    console.log("Error saving grocery ingredient:", error);
+    throw error;
+  }
+};
+
+export const deleteGroceryIngredient = async (userId, ingredientToDelete) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      return;
+    }
+
+    const currentGroceryList = userDoc.data()?.groceryList || [];
+
+    const updatedGroceryList = currentGroceryList.filter(
+      (ingredient) => !ingredientsMatch(ingredient, ingredientToDelete),
+    );
+
+    await updateDoc(userRef, {
+      groceryList: updatedGroceryList,
+    });
+  } catch (error) {
+    console.log("Error deleting grocery ingredient:", error);
     throw error;
   }
 };
