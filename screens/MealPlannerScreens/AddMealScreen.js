@@ -116,7 +116,7 @@ export default function AddMealScreen({ route, navigation }) {
                 />
                 <View>
                     <Text className="text-lg font-semibold text-gray-800">Search recipes</Text>
-                    <Text className="text-sm text-gray-500">Browse Spoonacular by ingredient or name</Text>
+                    <Text className="text-sm text-gray-500">Browse by ingredient or name</Text>
                 </View>
             </TouchableOpacity>
             
@@ -193,7 +193,7 @@ export default function AddMealScreen({ route, navigation }) {
                             onPress={() => handleSelectFavorite(item)}
                             activeOpacity={0.7}
                         >
-                            {/* FIXED: Handle both image types */}
+                            {/* fix: Handle both image types */}
                             <Image
                                 source={
                                     typeof item.image === 'string' 
