@@ -74,10 +74,12 @@ export default function MissingIngredientsScreen({ navigation }) {
     const hasNoMissingIngredients = missingCount === 0;
 
     return (
-      //create new screen for missing ingredients per recipe
       <TouchableOpacity
         onPress={() => {
           setSelectedRecipe(item);
+          navigation.navigate("recipeChecklist", {
+            recipe: item,
+          });
         }}
         className={`border-[1px] rounded-lg shadow pt-2 pb-4 px-2 mb-10 ${
           hasNoMissingIngredients

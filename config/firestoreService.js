@@ -7,6 +7,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from "firebase/firestore";
+import { ingredientsMatch } from "./services/groceryUtils";
 
 export const getUserProfile = async (userId) => {
   try {
@@ -56,6 +57,10 @@ export const updateUserProfile = async (userId, userData) => {
   }
 };
 
+{
+  /*get current authenticated user ID, throw error if no user is logged in*/
+}
+
 export const getCurrentUserId = () => {
   const user = auth.currentUser;
   if (!user) {
@@ -64,6 +69,9 @@ export const getCurrentUserId = () => {
   return user.uid;
 };
 
+{
+  /*update user display name*/
+}
 export const updateDisplayName = async (userId, displayName) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -94,6 +102,9 @@ export const getFavoriteRecipes = async (userId) => {
   }
 };
 
+{
+  /*save a recipe to user's favourites*/
+}
 export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -104,7 +115,10 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
         image: recipeData.image,
         savedAt: new Date().toISOString(),
         summary: recipeData.summary || "",
-        ingredients: recipeData.extendedIngredients || recipeData.ingredients || [],
+        ingredients:
+          recipeData.extendedIngredients || recipeData.ingredients || [],
+        ingredients:
+          recipeData.extendedIngredients || recipeData.ingredients || [],
         instructions: recipeData.instructions || [],
         readyInMinutes: recipeData.readyInMinutes || 20,
         servings: recipeData.servings || 2,
@@ -120,9 +134,14 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
   }
 };
 
+{
+  /*remove user's favourite recipe*/
+}
 export const removeFavoriteRecipe = async (userId, recipeId) => {
   try {
     const userRef = doc(db, "users", userId);
+    // Find the favorite entry with matching ID
+    // Find the favorite entry with matching ID
     const userDoc = await getDoc(userRef);
     const favorites = userDoc.data()?.favoriteRecipes || [];
     const favoriteToRemove = favorites.find((f) => f.id === recipeId);
@@ -140,6 +159,9 @@ export const removeFavoriteRecipe = async (userId, recipeId) => {
   }
 };
 
+{
+  /*get user's profile with error handling*/
+}
 export const getUserProfileWithAuth = async () => {
   try {
     const userId = getCurrentUserId();
@@ -150,9 +172,22 @@ export const getUserProfileWithAuth = async () => {
   }
 };
 
-export const saveIngredient = async (userId, ingredientId, ingredientData) => {
+{
+  /*save an ingredient to user's inventory*/
+}
+export const saveIngredient = async (
+  userId,
+  ingredientId,
+  ingredientData,
+  addAmount = true,
+) => {
   try {
     const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      throw new Error("User document not found");
+    }
 
     const newIngredient = {
       id: ingredientId,
@@ -162,20 +197,66 @@ export const saveIngredient = async (userId, ingredientId, ingredientData) => {
       image: ingredientData.image || "",
       aisle: ingredientData.aisle || "",
       savedAt: new Date().toISOString(),
+      expiryDate: ingredientData.expiryDate || "",
     };
 
+    const currentInventory = userSnap.data().ingredientInventory || [];
+
+    {
+      /*check if ingredient is alr in inventory */
+    }
+    const existingIngredient = currentInventory.find(
+      (item) => item.id === ingredientId,
+    );
+
+    let updatedInventory;
+
+    if (existingIngredient) {
+      {
+        /*check unit mismatch*/
+      }
+      if (
+        existingIngredient.unit &&
+        newIngredient.unit &&
+        existingIngredient.unit !== newIngredient.unit
+      ) {
+        throw new Error("Unit Mismatch!");
+      }
+
+      updatedInventory = currentInventory.map((item) => {
+        if (item.id === ingredientId) {
+          return {
+            ...item,
+            //add if + (add) button, overwrite if ... (edit) button
+            amount: addAmount
+              ? Number(item.amount || 0) + Number(newIngredient.amount || 0)
+              : Number(newIngredient.amount || 0),
+            unit: newIngredient.unit,
+            expiryDate: newIngredient.expiryDate,
+          };
+        }
+
+        return item;
+      });
+    } else {
+      updatedInventory = [...currentInventory, newIngredient];
+    }
+
     await updateDoc(userRef, {
-      ingredientInventory: arrayUnion(newIngredient),
+      ingredientInventory: updatedInventory,
     });
 
     console.log(`Ingredient ${ingredientData.name} saved to inventory`);
-    return { success: true, ingredient: newIngredient };
+    return updatedInventory;
   } catch (error) {
-    console.error("Error saving ingredient:", error);
+    console.log("Error saving ingredient:", error);
     throw error;
   }
 };
 
+{
+  /*delete an ingredient from user's inventory*/
+}
 export const deleteIngredient = async (userId, ingredientToDelete) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -186,10 +267,10 @@ export const deleteIngredient = async (userId, ingredientToDelete) => {
     }
 
     const currentInventory = userDoc.data()?.ingredientInventory || [];
+
     const updatedInventory = currentInventory.filter((ingredient) => {
       return ingredient.id !== ingredientToDelete.id;
     });
-
     await updateDoc(userRef, {
       ingredientInventory: updatedInventory,
     });
@@ -201,6 +282,9 @@ export const deleteIngredient = async (userId, ingredientToDelete) => {
   }
 };
 
+{
+  /*get user's ingredient inventory*/
+}
 export const getIngredientInventory = async (userId) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -216,7 +300,10 @@ export const getIngredientInventory = async (userId) => {
     return [];
   }
 };
-//meal plan functions
+
+{
+  /* meal planner functions */
+}
 export const getMealPlanForWeek = async (userId, weekStart) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -245,6 +332,9 @@ export const getMealPlanForWeek = async (userId, weekStart) => {
   }
 };
 
+{
+  /* save meal for a specific day and meal type */
+}
 export const saveMealForDay = async (userId, date, mealType, recipeData) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -303,7 +393,7 @@ export const removeMealForDay = async (userId, date, mealType) => {
   }
 };
 
-// helper functions
+//helper functions to get week start date and all dates in the week
 const getWeekStart = (date) => {
   const d = new Date(date);
   const day = d.getDay();
@@ -321,4 +411,244 @@ const getWeekDates = (weekStart) => {
     dates.push(d.toISOString().split("T")[0]);
   }
   return dates;
+};
+
+//FullIngredientsScreen helper functions
+{
+  /*get user's grocery list*/
+}
+export const getGroceryList = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnapshot = await getDoc(userRef);
+
+    if (!userSnapshot.exists()) {
+      return [];
+    }
+
+    return userSnapshot.data().groceryList || [];
+  } catch (error) {
+    console.log("Error fetching grocery list:", error);
+    return [];
+  }
+};
+
+const normalizeIngredientName = (name = "") => name.trim().toLowerCase();
+
+const isSameIngredient = (item1, item2) => {
+  if (item1.id != null && item2.id != null) {
+    return String(item1.id) === String(item2.id);
+  }
+
+  return (
+    normalizeIngredientName(item1?.name) ===
+    normalizeIngredientName(item2?.name)
+  );
+};
+
+export const updateIngredientStatus = async (
+  userId,
+  selectedIngredient,
+  newStatus,
+) => {
+  try {
+    if (!userId) {
+      throw new Error("No user is currently logged in.");
+    }
+
+    const userRef = doc(db, "users", userId);
+    const userSnapshot = await getDoc(userRef);
+
+    if (!userSnapshot.exists()) {
+      throw new Error("User document does not exist.");
+    }
+
+    const userData = userSnapshot.data();
+
+    let updatedInventory = userData.ingredientInventory || [];
+    let updatedGroceryList = userData.groceryList || [];
+
+    const isMatchingIngredient = (ingredient) =>
+      ingredient.id === selectedIngredient.id ||
+      ingredient.name?.toLowerCase() === selectedIngredient.name?.toLowerCase();
+
+    if (newStatus === "have") {
+      //remove from cart(grocery list) & add to inventory
+      updatedGroceryList = updatedGroceryList.filter(
+        (ingredient) => !isMatchingIngredient(ingredient),
+      );
+
+      const alreadyInInventory = updatedInventory.some(isMatchingIngredient);
+
+      //remove status field before adding to grocery
+      if (!alreadyInInventory) {
+        const { status, ...inventoryIngredient } = selectedIngredient;
+
+        updatedInventory = [...updatedInventory, inventoryIngredient];
+      }
+    }
+
+    if (newStatus === "inCart") {
+      //remove from inventory, add to cart(grocery list)
+      updatedInventory = updatedInventory.filter(
+        (ingredient) => !isMatchingIngredient(ingredient),
+      );
+
+      const existingCartIngredient =
+        updatedGroceryList.some(isMatchingIngredient);
+
+      if (!existingCartIngredient) {
+        updatedGroceryList = [
+          ...updatedGroceryList,
+          {
+            ...selectedIngredient,
+            status: "inCart",
+          },
+        ];
+      }
+    }
+
+    if (newStatus === "toBuy") {
+      //remove from both inventory & grocery list(cart)
+      updatedInventory = updatedInventory.filter(
+        (ingredient) => !isMatchingIngredient(ingredient),
+      );
+
+      updatedGroceryList = updatedGroceryList.filter(
+        (ingredient) => !isMatchingIngredient(ingredient),
+      );
+    }
+
+    await updateDoc(userRef, {
+      ingredientInventory: updatedInventory,
+      groceryList: updatedGroceryList,
+    });
+
+    return {
+      ingredientInventory: updatedInventory,
+      groceryList: updatedGroceryList,
+    };
+  } catch (error) {
+    console.log("Error updating ingredient status:", error);
+    throw error;
+  }
+};
+
+//remove ingredient from both arrays first
+/*ingredientInventory = ingredientInventory.filter(
+      (inventoryIngredient) =>
+        !isSameIngredient(inventoryIngredient, ingredient),
+    );
+
+    groceryList = groceryList.filter(
+      (groceryIngredient) => !isSameIngredient(groceryIngredient, ingredient),
+    );
+
+    const ingredientData = {
+      id: ingredient.id ?? null,
+      name: ingredient.name,
+      amount: ingredient.amount ?? "",
+      original: ingredient.original ?? "",
+      unit: ingredient.unit ?? "",
+      image: ingredient.image ?? "",
+      aisle: ingredient.aisle ?? "",
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (newStatus === "have") {
+      ingredientInventory.push({
+        ...ingredientData,
+        savedAt: new Date().toISOString(),
+      });
+    }
+
+    if (newStatus === "toBuy" || newStatus === "inCart") {
+      groceryList.push({
+        ...ingredientData,
+        status: newStatus,
+        savedAt: new Date().toDateString(),
+      });
+    }
+
+    await updateDoc(userRef, {
+      ingredientInventory,
+      groceryList,
+    });
+
+    return {
+      ingredientInventory,
+      groceryList,
+    };
+  } catch (error) {
+    console.log("Error updating ingredient status:", error);
+    throw error;
+  }
+};*/
+
+export const saveGroceryIngredient = async (
+  userId,
+  ingredientId,
+  ingredientData,
+) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    const newIngredient = {
+      id: ingredientId,
+      ...ingredientData,
+      status: "inCart",
+    };
+
+    if (!userDoc.exists()) {
+      await setDoc(userRef, {
+        groceryList: [newIngredient],
+      });
+
+      return;
+    }
+
+    const currentGroceryList = userDoc.data()?.groceryList || [];
+
+    const alreadyExists = currentGroceryList.some(
+      (ingredient) =>
+        ingredient.id === newIngredient.id ||
+        ingredient.name?.toLowerCase() === newIngredient.name?.toLowerCase(),
+    );
+
+    if (alreadyExists) {
+      return;
+    }
+
+    await updateDoc(userRef, {
+      groceryList: [...currentGroceryList, newIngredient],
+    });
+  } catch (error) {
+    console.log("Error saving grocery ingredient:", error);
+    throw error;
+  }
+};
+
+export const deleteGroceryIngredient = async (userId, ingredientToDelete) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      return;
+    }
+
+    const currentGroceryList = userDoc.data()?.groceryList || [];
+
+    const updatedGroceryList = currentGroceryList.filter(
+      (ingredient) => !ingredientsMatch(ingredient, ingredientToDelete),
+    );
+
+    await updateDoc(userRef, {
+      groceryList: updatedGroceryList,
+    });
+  } catch (error) {
+    console.log("Error deleting grocery ingredient:", error);
+    throw error;
+  }
 };

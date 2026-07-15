@@ -10,16 +10,22 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 
-export default function AddIngredientModal({ visible, onClose, onSave }) {
+export default function AddIngredientModal({
+  visible,
+  ingredient,
+  onClose,
+  onSave,
+}) {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState("");
 
   const handleSave = () => {
     onSave({
-      name,
+      name: isFromSearchResult ? ingredient.name : name,
       amount,
       unit,
+      ingredient,
     });
 
     //clear input after saving
@@ -27,6 +33,8 @@ export default function AddIngredientModal({ visible, onClose, onSave }) {
     setAmount("");
     setUnit("");
   };
+
+  const isFromSearchResult = !!ingredient; //check if ingredient is passed in as a prop(from search result) or not(from manual input in inventory)
 
   return (
     <Modal visible={visible} transparent={true} animationType="fade">
@@ -48,15 +56,23 @@ export default function AddIngredientModal({ visible, onClose, onSave }) {
           </View>
 
           <Text className="text-xl font-bold text-center mb-6">
-            Add Ingredient
+            {isFromSearchResult ? `Add ${ingredient.name}` : "Add Ingredient"}
           </Text>
 
-          <TextInput
-            placeholder="name"
-            value={name}
-            onChangeText={setName}
-            className="bg-purple-100 rounded-xl p-4 mb-6"
-          />
+          {isFromSearchResult ? (
+            <View className="bg-purple-100 rounded-xl p-4 mb-6">
+              <Text className="text-gray-700 items-center">
+                {ingredient.name}
+              </Text>
+            </View>
+          ) : (
+            <TextInput
+              placeholder="name"
+              value={name}
+              onChangeText={setName}
+              className="bg-purple-100 rounded-xl p-4 mb-6"
+            />
+          )}
 
           <TextInput
             placeholder="amount"

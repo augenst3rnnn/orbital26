@@ -303,8 +303,11 @@ export const searchIngredientByName = async (ingredientName) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
+    {
+      /*return array of size 5*/
+    }
     const response = await fetch(
-      `https://api.spoonacular.com/food/ingredients/search?query=${encodeURIComponent(normalizedName)}&number=1&apiKey=${SPOONACULAR_API_KEY}`,
+      `https://api.spoonacular.com/food/ingredients/search?query=${encodeURIComponent(normalizedName)}&number=5&apiKey=${SPOONACULAR_API_KEY}`,
       { signal: controller.signal },
     );
 
@@ -323,8 +326,8 @@ export const searchIngredientByName = async (ingredientName) => {
       throw new Error("No ingredient found");
     }
 
-    //data.results is an array of length 1 (bc number = 1)
-    const ingredientData = data.results[0];
+    //data.results is an array of length 5 (bc number = 5)
+    const ingredientData = data.results;
 
     await setCachedData(cacheKey, ingredientData);
 
@@ -333,4 +336,56 @@ export const searchIngredientByName = async (ingredientName) => {
     console.error("Error searching ingredient by name:", error);
     throw error;
   }
+};
+
+export const getIngredientInformation = async (ingredientId) => {
+  try {
+    const cacheKey = `ingredientInfo_${ingredientId}`;
+    const cachedData = await getCachedData(cacheKey);
+
+    if (cachedData) {
+      console.log("Using cached ingredient info");
+      return cachedData;
+    } else {
+      console.log(`Fetching ingredient data for ${ingredientId} from API`);
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(
+      `https://api.spoonacular.com/food/ingredients/${ingredientId}/information?apiKey=${SPOONACULAR_API_KEY}`,
+      { signal: controller.signal },
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error fetching ingredient info: ${response.status} ${errorText}`,
+      );
+    }
+
+    const ingredientInfo = await response.json();
+
+    await setCachedData(cacheKey, ingredientInfo);
+
+    return ingredientInfo;
+  } catch (error) {
+    console.error("Error searching for ingredient info:", error);
+    throw error;
+  }
+};
+
+const getIngredientImageURL = (image) => {
+  if (!image) {
+    return "";
+  }
+
+  if (image.startsWith("http")) {
+    return image;
+  }
+
+  return `https://img.spoonacular.com/ingredients_100x100/${image}`;
 };
