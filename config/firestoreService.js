@@ -652,3 +652,47 @@ export const deleteGroceryIngredient = async (userId, ingredientToDelete) => {
     throw error;
   }
 };
+
+{/*get user's notification preferences*/}
+export const getNotificationPreferences = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return data?.notificationPreferences || {
+        mealReminders: true,
+        groceryAlerts: true,
+        recipeSuggestions: false,
+      };
+    }
+    return {
+      mealReminders: true,
+      groceryAlerts: true,
+      recipeSuggestions: false,
+    };
+  } catch (error) {
+    console.error("Error fetching notification preferences:", error);
+    return {
+      mealReminders: true,
+      groceryAlerts: true,
+      recipeSuggestions: false,
+    };
+  }
+};
+
+export const setNotificationPreferences = async (userId, preferences) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      notificationPreferences: preferences,
+      updatedAt: new Date().toISOString(),
+    });
+    console.log("Notification preferences updated");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating notification preferences:", error);
+    throw error;
+  }
+};
