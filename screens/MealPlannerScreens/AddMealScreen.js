@@ -162,7 +162,7 @@ export default function AddMealScreen({ route, navigation }) {
                 Your Favorites
             </Text>
             <Text className="text-gray-500 text-sm mb-4">
-                Pick a recipe to add to {mealType?.toLowerCase()}
+                Pick a recipe to add to  {mealType?.toLowerCase()}
             </Text>
             
             <View className="bg-gray-100 rounded-xl px-4 py-2 flex-row items-center mb-4">
