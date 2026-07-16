@@ -26,6 +26,7 @@ import {
     setNotificationPreferences, 
 } from '../config/firestoreService';
 import useAuth from '../config/hooks/useAuth';
+import { cancelAllNotifications } from '../config/services/notificationsService';
 
 export default function ProfileScreen({ navigation }) {
     const { user } = useAuth();
@@ -131,10 +132,15 @@ export default function ProfileScreen({ navigation }) {
         try {
             const userId = getCurrentUserId();
             await setNotificationPreferences(userId, updated);
+        
+        //if meal reminders are turned off, cancel all the scheduled notifications
+        if (key === 'mealReminders' && !updated.mealReminders) {
+            await cancelAllNotifications();
+            console.log('Cancelled all scheduled notifications');
+            }
         } catch (error) {
-            console.error('Error saving notification preference:', error);
-            Alert.alert('Error', 'Failed to save notification preference');
-            // revert on error
+            console.error('Error updating notification preferences:', error);
+            Alert.alert('Error', 'Failed to update notification preferences');
             setNotificationPrefs(notificationPrefs);
         }
     };
@@ -397,37 +403,11 @@ export default function ProfileScreen({ navigation }) {
                                 <View className="flex-row justify-between items-center py-2 border-b border-gray-100">
                                     <View>
                                         <Text className="text-gray-800 font-medium">Meal Reminders</Text>
-                                        <Text className="text-xs text-gray-500">Get reminded when to cook</Text>
+                                        <Text className="text-xs text-gray-500">Get reminders on when to cook</Text>
                                     </View>
                                     <Switch
                                         value={notificationPrefs.mealReminders}
                                         onValueChange={() => toggleNotificationPreference('mealReminders')}
-                                        trackColor={{ false: '#d1d5db', true: '#eab308' }}
-                                    />
-                                </View>
-
-                                {/* Grocery Alerts */}
-                                <View className="flex-row justify-between items-center py-2 border-b border-gray-100">
-                                    <View>
-                                        <Text className="text-gray-800 font-medium">Grocery Alerts</Text>
-                                        <Text className="text-xs text-gray-500">Get reminded to buy ingredients</Text>
-                                    </View>
-                                    <Switch
-                                        value={notificationPrefs.groceryAlerts}
-                                        onValueChange={() => toggleNotificationPreference('groceryAlerts')}
-                                        trackColor={{ false: '#d1d5db', true: '#eab308' }}
-                                    />
-                                </View>
-
-                                {/* Recipe Suggestions */}
-                                <View className="flex-row justify-between items-center py-2">
-                                    <View>
-                                        <Text className="text-gray-800 font-medium">Recipe Suggestions</Text>
-                                        <Text className="text-xs text-gray-500">Get recipe recommendations</Text>
-                                    </View>
-                                    <Switch
-                                        value={notificationPrefs.recipeSuggestions}
-                                        onValueChange={() => toggleNotificationPreference('recipeSuggestions')}
                                         trackColor={{ false: '#d1d5db', true: '#eab308' }}
                                     />
                                 </View>

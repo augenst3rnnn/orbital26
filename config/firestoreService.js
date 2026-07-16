@@ -117,8 +117,6 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
         summary: recipeData.summary || "",
         ingredients:
           recipeData.extendedIngredients || recipeData.ingredients || [],
-        ingredients:
-          recipeData.extendedIngredients || recipeData.ingredients || [],
         instructions: recipeData.instructions || [],
         readyInMinutes: recipeData.readyInMinutes || 20,
         servings: recipeData.servings || 2,
@@ -140,7 +138,6 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
 export const removeFavoriteRecipe = async (userId, recipeId) => {
   try {
     const userRef = doc(db, "users", userId);
-    // Find the favorite entry with matching ID
     // Find the favorite entry with matching ID
     const userDoc = await getDoc(userRef);
     const favorites = userDoc.data()?.favoriteRecipes || [];
@@ -682,6 +679,7 @@ export const getNotificationPreferences = async (userId) => {
   }
 };
 
+{/*update user's notification preferences*/}
 export const setNotificationPreferences = async (userId, preferences) => {
   try {
     const userRef = doc(db, "users", userId);
@@ -695,4 +693,4 @@ export const setNotificationPreferences = async (userId, preferences) => {
     console.error("Error updating notification preferences:", error);
     throw error;
   }
-};
+}

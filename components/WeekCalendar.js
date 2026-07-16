@@ -1,20 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import React from 'react';
-
-// date helper functions 
-const getDayName = (date) => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    return days[new Date(date).getDay()];
-};
-
-const getDayNumber = (date) => {
-    return new Date(date).getDate();
-};
-
-const isToday = (date) => {
-    const today = new Date().toISOString().split('T')[0];
-    return date === today;
-};
+import { getDayName, getDayNumber, isToday } from '../config/services/dateUtils';
 
 export default function WeekCalendar({ weekDates, selectedDate, onSelectDate }) {
     return (
