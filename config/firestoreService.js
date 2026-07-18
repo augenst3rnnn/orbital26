@@ -117,8 +117,6 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
         summary: recipeData.summary || "",
         ingredients:
           recipeData.extendedIngredients || recipeData.ingredients || [],
-        ingredients:
-          recipeData.extendedIngredients || recipeData.ingredients || [],
         instructions: recipeData.instructions || [],
         readyInMinutes: recipeData.readyInMinutes || 20,
         servings: recipeData.servings || 2,
@@ -140,7 +138,6 @@ export const saveFavoriteRecipe = async (userId, recipeId, recipeData) => {
 export const removeFavoriteRecipe = async (userId, recipeId) => {
   try {
     const userRef = doc(db, "users", userId);
-    // Find the favorite entry with matching ID
     // Find the favorite entry with matching ID
     const userDoc = await getDoc(userRef);
     const favorites = userDoc.data()?.favoriteRecipes || [];
@@ -652,3 +649,48 @@ export const deleteGroceryIngredient = async (userId, ingredientToDelete) => {
     throw error;
   }
 };
+
+{/*get user's notification preferences*/}
+export const getNotificationPreferences = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return data?.notificationPreferences || {
+        mealReminders: true,
+        groceryAlerts: true,
+        recipeSuggestions: false,
+      };
+    }
+    return {
+      mealReminders: true,
+      groceryAlerts: true,
+      recipeSuggestions: false,
+    };
+  } catch (error) {
+    console.error("Error fetching notification preferences:", error);
+    return {
+      mealReminders: true,
+      groceryAlerts: true,
+      recipeSuggestions: false,
+    };
+  }
+};
+
+{/*update user's notification preferences*/}
+export const setNotificationPreferences = async (userId, preferences) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      notificationPreferences: preferences,
+      updatedAt: new Date().toISOString(),
+    });
+    console.log("Notification preferences updated");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating notification preferences:", error);
+    throw error;
+  }
+}

@@ -9,8 +9,9 @@ import {
     Image,
     FlatList,
     RefreshControl,
+    Switch,
 } from 'react-native';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react'; 
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signOut } from 'firebase/auth';
@@ -21,8 +22,11 @@ import {
     updateDisplayName,
     getFavoriteRecipes,
     removeFavoriteRecipe,
+    getNotificationPreferences,
+    setNotificationPreferences, 
 } from '../config/firestoreService';
 import useAuth from '../config/hooks/useAuth';
+import { cancelAllNotifications } from '../config/services/notificationsService';
 
 export default function ProfileScreen({ navigation }) {
     const { user } = useAuth();
@@ -34,6 +38,14 @@ export default function ProfileScreen({ navigation }) {
 
     const [editingName, setEditingName] = useState(false);
     const [displayName, setDisplayName] = useState('');
+
+    // notification preferences 
+    const [notificationPrefs, setNotificationPrefs] = useState({
+        mealReminders: true,
+        groceryAlerts: true,
+        recipeSuggestions: false,
+    });
+    const [notificationLoading, setNotificationLoading] = useState(true);
 
     const fetchProfile = async () => {
         try {
@@ -56,10 +68,26 @@ export default function ProfileScreen({ navigation }) {
         }
     };
 
+    // fetch notification preferences 
+    const fetchNotificationPrefs = async () => {
+        try {
+            const userId = getCurrentUserId();
+            const prefs = await getNotificationPreferences(userId);
+            if (prefs) {
+                setNotificationPrefs(prefs);
+            }
+        } catch (error) {
+            console.error('Error fetching notification prefs:', error);
+        } finally {
+            setNotificationLoading(false);
+        }
+    };
+
     const loadAllData = async () => {
         setLoading(true);
         await fetchProfile();
         await fetchFavorites();
+        await fetchNotificationPrefs(); 
         setLoading(false);
     };
 
@@ -93,6 +121,27 @@ export default function ProfileScreen({ navigation }) {
             Alert.alert('Error', 'Failed to update name');
         } finally {
             setSaving(false);
+        }
+    };
+
+    // Toggle notification preference 
+    const toggleNotificationPreference = async (key) => {
+        const updated = { ...notificationPrefs, [key]: !notificationPrefs[key] };
+        setNotificationPrefs(updated);
+
+        try {
+            const userId = getCurrentUserId();
+            await setNotificationPreferences(userId, updated);
+        
+        //if meal reminders are turned off, cancel all the scheduled notifications
+        if (key === 'mealReminders' && !updated.mealReminders) {
+            await cancelAllNotifications();
+            console.log('Cancelled all scheduled notifications');
+            }
+        } catch (error) {
+            console.error('Error updating notification preferences:', error);
+            Alert.alert('Error', 'Failed to update notification preferences');
+            setNotificationPrefs(notificationPrefs);
         }
     };
 
@@ -331,6 +380,39 @@ export default function ProfileScreen({ navigation }) {
                     <View className="bg-white rounded-xl p-4 shadow-sm">
                         <Text className="text-xs text-gray-500">Email</Text>
                         <Text className="text-gray-800 text-base mt-1">{user?.email}</Text>
+                    </View>
+                </View>
+
+                {/* Notification Preferences*/}
+                <View className="px-6 mt-4">
+                    <View className="bg-white rounded-xl p-4 shadow-sm">
+                        <View className="flex-row items-center justify-between mb-3">
+                            <Text className="text-sm font-semibold text-gray-700">Notifications</Text>
+                            {!notificationLoading && (
+                                <Text className="text-xs text-gray-400">
+                                    {notificationPrefs.mealReminders || notificationPrefs.groceryAlerts || notificationPrefs.recipeSuggestions ? 'On' : 'Off'}
+                                </Text>
+                            )}
+                        </View>
+
+                        {notificationLoading ? (
+                            <ActivityIndicator size="small" color="#eab308" />
+                        ) : (
+                            <>
+                                {/* Meal Reminders */}
+                                <View className="flex-row justify-between items-center py-2 border-b border-gray-100">
+                                    <View>
+                                        <Text className="text-gray-800 font-medium">Meal Reminders</Text>
+                                        <Text className="text-xs text-gray-500">Get reminders on when to cook</Text>
+                                    </View>
+                                    <Switch
+                                        value={notificationPrefs.mealReminders}
+                                        onValueChange={() => toggleNotificationPreference('mealReminders')}
+                                        trackColor={{ false: '#d1d5db', true: '#eab308' }}
+                                    />
+                                </View>
+                            </>
+                        )}
                     </View>
                 </View>
 
