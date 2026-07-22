@@ -55,69 +55,85 @@ export default function ExploreRecipeScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar style="dark" />
+    <View className="flex-1 bg-gray-50">
+      {/*yellow header*/}
+      <View className="bg-yellow-200 px-7 pt-28 pb-20">
+        <Text className="text-3xl font-bold text-black">Explore Recipes</Text>
 
-      <FlatList
-        data={filteredRecipes}
-        keyExtractor={(item) => item.id.toString()}
-        showsVerticalScrollIndicator={true}
-        renderItem={renderRecipeCard}
-        contentContainerStyle={{ padding: 18 }}
-        ListHeaderComponent={
-          <View>
-            <Text className="text-3xl font-bold text-gray-900 mb-2">
-              Explore Recipes
-            </Text>
+        <Text className="text-gray-600 mr-20 mt-2 mb-3">
+          Find something delicious to cook today!
+        </Text>
+      </View>
 
-            <Text className="text-gray-600 mb-4">
-              Find something delicious to cook today!
-            </Text>
+      {/*white body*/}
+      <View className="flex-1 bg-white rounded-t-[40px] px-6 pt-6 -mt-10">
+        {/*search bar*/}
 
-            <TextInput
-              placeholder="Search recipes..."
-              placeholderTextColor="gray"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              className="bg-white rounded-full px-4 py-2 mb-4 shadow-sm"
-            />
+        <FlatList
+          data={filteredRecipes}
+          keyExtractor={(item) => item.id.toString()}
+          showsVerticalScrollIndicator={true}
+          renderItem={renderRecipeCard}
+          contentContainerStyle={{ padding: 5 }}
+          ListHeaderComponent={
+            <View>
+              <View className="bg-gray-100 rounded-full px-4 py-2 flex-row items-center mb-6 shadow">
+                <View className="bg-white rounded-full p-3">
+                  <Image
+                    source={require("../assets/icons/search.png")}
+                    style={{
+                      height: 20,
+                      width: 20,
+                    }}
+                  />
+                </View>
 
-            <FlatList
-              horizontal
-              data={categories}
-              keyExtractor={(item) => item}
-              showsHorizontalScrollIndicator={false}
-              className="mb-5"
-              renderItem={({ item }) => (
-                <Pressable
-                  onPress={() => setSelectedType(item)}
-                  className={`mr-3 px-5 py-3 rounded-2xl ${selectedType === item ? "bg-orange-400" : "bg-white"}`}
-                >
-                  <Text
-                    className={
-                      selectedType === item
-                        ? "text-white font-semibold"
-                        : "text-gray-600 font-medium"
-                    }
+                <TextInput
+                  placeholder="Search recipes..."
+                  placeholderTextColor={"gray"}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  className="flex-1 text-base mb-2 pl-2"
+                />
+              </View>
+
+              <FlatList
+                horizontal
+                data={categories}
+                keyExtractor={(item) => item}
+                showsHorizontalScrollIndicator={false}
+                className="mb-5"
+                renderItem={({ item }) => (
+                  <Pressable
+                    onPress={() => setSelectedType(item)}
+                    className={`mr-3 px-5 py-2 rounded-2xl ${selectedType === item ? "bg-yellow-400" : "bg-white"}`}
                   >
-                    {item}
-                  </Text>
-                </Pressable>
-              )}
-            />
-          </View>
-        }
-      />
+                    <Text
+                      className={
+                        selectedType === item
+                          ? "text-white font-semibold"
+                          : "text-gray-600 font-medium"
+                      }
+                    >
+                      {item}
+                    </Text>
+                  </Pressable>
+                )}
+              />
+            </View>
+          }
+        />
 
-      <RecipeModal
-        visible={modalVisible}
-        recipe={selectedRecipe}
-        onClose={() => setModalVisible(false)}
-        onReadMore={() => {
-          setModalVisible(false);
-          navigation.navigate("RecipeDetails", { recipe: selectedRecipe });
-        }}
-      />
-    </SafeAreaView>
+        <RecipeModal
+          visible={modalVisible}
+          recipe={selectedRecipe}
+          onClose={() => setModalVisible(false)}
+          onReadMore={() => {
+            setModalVisible(false);
+            navigation.navigate("RecipeDetails", { recipe: selectedRecipe });
+          }}
+        />
+      </View>
+    </View>
   );
 }

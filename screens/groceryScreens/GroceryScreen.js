@@ -322,8 +322,16 @@ export default function GroceryScreen({ navigation }) {
 
       <View className="flex-1 bg-white rounded-t-[40px] px-6 pt-6 -mt-10">
         {/*search bar*/}
-        <View className="bg-gray-100 rounded-full px-5 py-4 flex-row items-center mb-6 shadow">
-          <Text className="text-gray-400 mr-3">🔍</Text>
+        <View className="bg-gray-100 rounded-full px-4 py-2 flex-row items-center mb-6 shadow">
+          <View className="bg-white rounded-full p-3">
+            <Image
+              source={require("../../assets/icons/search.png")}
+              style={{
+                height: 20,
+                width: 20,
+              }}
+            />
+          </View>
 
           <TextInput
             placeholder="Search ingredients"
