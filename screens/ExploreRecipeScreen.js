@@ -30,11 +30,11 @@ export default function ExploreRecipeScreen({ navigation }) {
 
   //check if need this
   const recipeTypes = [
-    { label: "all", value: "all" },
-    { label: "breakfast", value: "breakfast" },
-    { label: "main course", value: "main course" },
-    { label: "snack", value: "snack" },
-    { label: "dessert", value: "dessert" },
+    { label: "All", value: "all" },
+    { label: "Breakfast", value: "breakfast" },
+    { label: "Main Course", value: "main course" },
+    { label: "Snack", value: "snack" },
+    { label: "Dessert", value: "dessert" },
   ];
 
   const fetchRecipes = async () => {
@@ -132,20 +132,27 @@ export default function ExploreRecipeScreen({ navigation }) {
         </View>
 
         {/*type filters*/}
-        <View className="flex-row mb-5">
-          {recipeTypes.map((type) => {
-            const isSelected = selectedType === type.value;
+        <View className="mb-4">
+          <Text className="text-xl font-bold mb-4">Select Meal Type</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="px-2"
+          >
+            {recipeTypes.map((type) => {
+              const isSelected = selectedType === type.value;
 
-            return (
-              <TouchableOpacity
-                key={type.value}
-                onPress={() => setSelectedType(type.value)}
-                className={`mr-3 px-4 py-2 rounded-full ${isSelected ? "bg-yellow-400" : "bg-gray-100"}`}
-              >
-                <Text>{type.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
+              return (
+                <TouchableOpacity
+                  key={type.value}
+                  onPress={() => setSelectedType(type.value)}
+                  className={`mr-3 px-4 py-2 rounded-full ${isSelected ? "bg-yellow-400" : "bg-gray-100"}`}
+                >
+                  <Text>{type.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         </View>
 
         {/*recipe results*/}

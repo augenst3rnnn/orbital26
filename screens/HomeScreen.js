@@ -183,7 +183,7 @@ export default function HomeScreen({ route, navigation }) {
 
         <ScrollView
           style={{ flex: 1 }}
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 300 }}
         >
           {/* Dietary Filters */}
@@ -196,7 +196,7 @@ export default function HomeScreen({ route, navigation }) {
           {ingredients.length > 0 && (
             <View className="px-4 mt-4 mb-3">
               <Text className="font-bold mb-3">
-                Your ingredients ({ingredients.length}):
+                Ingredients ({ingredients.length}):
               </Text>
               <View
                 style={{ flexDirection: "row", flexWrap: "wrap", gap: "8" }}

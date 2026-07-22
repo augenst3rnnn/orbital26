@@ -344,7 +344,7 @@ export default function MealPlannerScreen({ navigation }) {
               <Text className="text-gray-700 font-semibold">
                 {missingCount} items missing this week
               </Text>
-              <Text className="text-yellow-600 font-medium">Tap to add →</Text>
+              <Text className="text-yellow-600 font-medium">Tap to view →</Text>
             </TouchableOpacity>
 
             {/* week at a glance */}

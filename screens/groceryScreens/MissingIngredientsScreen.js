@@ -134,6 +134,19 @@ export default function MissingIngredientsScreen({ navigation }) {
     );
   };
 
+  const normalizedSearchQuery = debouncedSearchQuery.trim().toLowerCase();
+
+  const isSearching = normalizedSearchQuery.length > 0;
+
+  const displayedRecipes = isSearching
+    ? recipesWithMissingIngredients.filter((recipe) =>
+        (recipe.title ?? "")
+          .trim()
+          .toLowerCase()
+          .includes(normalizedSearchQuery),
+      )
+    : recipesWithMissingIngredients;
+
   //UI
   return (
     <View className="flex-1 bg-white">
@@ -162,18 +175,22 @@ export default function MissingIngredientsScreen({ navigation }) {
 
         {/*body*/}
         <FlatList
-          data={recipesWithMissingIngredients}
+          data={displayedRecipes}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
           className="p-3 mb-20"
           renderItem={renderMissingIngredientsCard}
           ListEmptyComponent={
-            <Text className="text-gray-400 text-center mt-10">
-              No saved recipes found.
-            </Text>
+            <View className="flex-1 items-center justify-center">
+              <Text className="text-gray-400 text-center">
+                {isSearching
+                  ? "No matching recipes saved"
+                  : "No saved recipes found."}
+              </Text>
+            </View>
           }
           ListHeaderComponent={
-            <Text className="text-xl font-semibold pl-2 pb-8">
+            <Text className="text-lg font-semibold pb-4">
               From your saved recipes
             </Text>
           }
