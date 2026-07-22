@@ -15,9 +15,12 @@ import {
   getMealPlanForWeek,
   saveMealForDay,
   removeMealForDay,
+  getIngredientInventory,
+  getFavoriteRecipes,
 } from "../../config/firestoreService";
 import WeekCalendar from "../../components/WeekCalendar";
 import MealCard from "../../components/MealCard";
+import { getMissingIngredientsForRecipe } from "../../config/services/groceryUtils";
 
 //helper functions for date comparisons
 const isPastDate = (date) => {
@@ -66,6 +69,7 @@ export default function MealPlannerScreen({ navigation }) {
   );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [missingCount, setMissingCount] = useState(0);
 
   const userId = auth.currentUser?.uid;
 
@@ -75,6 +79,24 @@ export default function MealPlannerScreen({ navigation }) {
         fetchWeekPlan();
       }
     }, [userId, selectedDate]),
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) return;
+
+      const fetchMissingCount = async () => {
+        const inventory = await getIngredientInventory(userId);
+        const favoriteRecipes = await getFavoriteRecipes(userId);
+
+        const missingIngredients = favoriteRecipes.flatMap((recipe) =>
+          getMissingIngredientsForRecipe(recipe.ingredients || [], inventory),
+        );
+        setMissingCount(missingIngredients.length);
+      };
+
+      fetchMissingCount();
+    }, [userId]),
   );
 
   const fetchWeekPlan = async () => {
@@ -166,8 +188,6 @@ export default function MealPlannerScreen({ navigation }) {
       isToday: isToday(date),
     };
   });
-
-  const missingItemsCount = 5; //placeholder for missing items count - will connect to grocery list later
 
   if (loading) {
     return (
@@ -318,11 +338,11 @@ export default function MealPlannerScreen({ navigation }) {
             <TouchableOpacity
               className="bg-yellow-50 rounded-xl p-4 mt-10 flex-row justify-between items-center border border-yellow-100"
               onPress={() => {
-                console.log("Navigate to grocery list with missing items");
+                navigation.navigate("recipeMissingIngredients");
               }}
             >
               <Text className="text-gray-700 font-semibold">
-                {missingItemsCount} items missing this week
+                {missingCount} items missing this week
               </Text>
               <Text className="text-yellow-600 font-medium">Tap to add →</Text>
             </TouchableOpacity>

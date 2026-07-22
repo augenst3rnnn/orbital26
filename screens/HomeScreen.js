@@ -139,10 +139,12 @@ export default function HomeScreen({ route, navigation }) {
       <View className="bg-yellow-200 px-7 pt-20 pb-20">
         {/* Avatar Icon */}
         <View className="flex-row justify-between items-center mb-4">
-          <Image
-            source={require("../assets/icons/avatar.png")}
-            style={{ height: 50, width: 50 }}
-          />
+          <View className="rounded-full border-2 border-white">
+            <Image
+              source={require("../assets/icons/avatar.png")}
+              style={{ height: 50, width: 50 }}
+            />
+          </View>
         </View>
 
         <Text className="text-3xl font-bold text-black">
