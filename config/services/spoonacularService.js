@@ -107,6 +107,76 @@ export const searchRecipesByIngredients = async (
   }
 };
 
+//for explore screen - include filter by meal type!
+export const searchRecipesByName = async ({
+  searchQuery = "",
+  recipeType = "",
+  number = 10,
+}) => {
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const normalizedType = recipeType.trim().toLowerCase();
+
+  try {
+    const cacheKey = `recipeSearch_${normalizedQuery || "all"}_${normalizedType || "all"}_${number}`;
+    const cachedData = await getCachedData(cacheKey);
+
+    if (cachedData) {
+      console.log("Using cached recipe search results");
+      return cachedData;
+    }
+
+    const params = new URLSearchParams({
+      apiKey: SPOONACULAR_API_KEY,
+      number: String(number),
+
+      //includes more info like meal type
+      addRecipeInformation: "true",
+    });
+
+    if (normalizedQuery) {
+      params.append("query", normalizedQuery);
+    }
+
+    if (normalizedType && normalizedType !== "all") {
+      params.append("type", normalizedType);
+    }
+
+    console.log(`Fetching recipe data for ${normalizedQuery} from API`);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch(
+      `https://api.spoonacular.com/recipes/complexSearch?${params.toString()}`,
+      { signal: controller.signal },
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error fetching recipes: ${response.status} ${errorText}`,
+      );
+    }
+
+    const data = await response.json();
+
+    if (!data.results || data.results.length === 0) {
+      throw new Error("No recipes found");
+    }
+
+    const recipes = data.results;
+
+    await setCachedData(cacheKey, recipes);
+
+    return recipes;
+  } catch (error) {
+    console.error("Error searching recipes by name:", error);
+    throw error;
+  }
+};
+
 export const fetchRecipeNutrition = async (recipeId) => {
   try {
     if (!recipeId) {
@@ -376,16 +446,4 @@ export const getIngredientInformation = async (ingredientId) => {
     console.error("Error searching for ingredient info:", error);
     throw error;
   }
-};
-
-const getIngredientImageURL = (image) => {
-  if (!image) {
-    return "";
-  }
-
-  if (image.startsWith("http")) {
-    return image;
-  }
-
-  return `https://img.spoonacular.com/ingredients_100x100/${image}`;
 };

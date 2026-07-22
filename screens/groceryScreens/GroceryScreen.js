@@ -181,7 +181,6 @@ export default function GroceryScreen({ navigation }) {
         return;
       }
       try {
-        //edit SIBN func to accept number
         const results = await searchIngredientByName(debouncedSearchQuery);
 
         const detailedResults = await Promise.all(
