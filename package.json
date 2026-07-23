@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@babel/core": "^7.29.7",
@@ -39,6 +41,7 @@
   "devDependencies": {
     "babel-preset-expo": "^55.0.22",
     "eas-cli": "^20.0.0",
-    "tailwindcss": "^3.3.2"
+    "tailwindcss": "^3.3.2",
+    "vitest": "^4.1.10"
   }
 }
