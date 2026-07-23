@@ -78,14 +78,18 @@ export default function ExploreRecipeScreen({ navigation }) {
   const renderRecipeCard = ({ item }) => {
     return (
       <TouchableOpacity
-        className="bg-white rounded-lg shadow-md p-4 mb-4"
+        className="bg-white rounded-lg shadow-md p-4 mb-8 border-2 border-purple-300"
         onPress={() => {
           setSelectedRecipe(item);
           setModalVisible(true);
           console.log("Selected recipe: ", item.title);
         }}
       >
-        <Image source={item.image} className="w-full h-44" resizeMode="cover" />
+        <Image
+          source={{ uri: item.image }}
+          className="w-full h-44 border-2 border-yellow-400"
+          resizeMode="cover"
+        />
         <View className="mt-2">
           <Text className="text-lg font-semibold">{item.title}</Text>
           <Text className="text-sm text-gray-500">
