@@ -1,4 +1,4 @@
-export const dietRules = {
+ export const dietRules = {
     vegetarian: (text) => {
         const forbidden = ['chicken', 'beef', 'pork', 'fish', 'lamb', 'turkey', 'meat', 'bacon', 'ham', 'sausage'];
         return !forbidden.some(word => text.includes(word));
@@ -23,7 +23,16 @@ export const dietRules = {
         return !forbidden.some(word => text.includes(word));
     },
     paleo: (text) => {
-        const forbidden = ['dairy', 'grain', 'sugar', 'legume', 'bean', 'peanut', 'soy', 'rice', 'corn'];
+        const forbidden = [
+            // Dairy
+            'milk', 'cheese', 'yogurt', 'butter', 'cream', 'dairy',
+            // Grains
+            'grain', 'wheat', 'flour', 'bread', 'pasta', 'noodle', 'rice', 'corn', 'oat', 'barley', 'rye',
+            // Legumes
+            'legume', 'bean', 'peanut', 'soy', 'tofu', 'lentil',
+            // Sugar
+            'sugar', 'honey', 'syrup'
+        ];
         return !forbidden.some(word => text.includes(word));
     },
     halal: (text) => {
