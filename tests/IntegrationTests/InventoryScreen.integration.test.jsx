@@ -124,9 +124,6 @@ describe("InventoryScreen integration", () => {
 
     render(<InventoryScreen navigation={navigation} />);
 
-    {
-      /* actions */
-    }
     //load user's inventory inside useEffect (async)
     await waitFor(() => {
       expect(getIngredientInventory).toHaveBeenCalledWith("test-user-123");
@@ -176,53 +173,5 @@ describe("InventoryScreen integration", () => {
     expect(screen.getByText("2 cartons")).toBeTruthy();
 
     expect(screen.getByText("You have (1)")).toBeTruthy();
-
-    /*const addModal = await screen.findByTestId("add-ingredient-modal");
-
-    expect(addModal).toBeTruthy();
-
-    //confirm add modal opened
-    expect(screen.getByText("Add Ingredient")).toBeTruthy();
-
-    fireEvent.changeText(screen.getByTestId("ingredient-search-input"), "milk");
-
-    fireEvent.changeText(screen.getByTestId("ingredient-amount-input"), "2");
-
-    fireEvent.changeText(
-      screen.getByTestId("ingredient-unit-input"),
-      "cartons",
-    );
-
-    //click save button
-    fireEvent.press(screen.getByTestId("save-ingredient-button"));
-
-    //screen uses entered name to search spoonacular
-    await waitFor(() => {
-      expect(searchIngredientByName).toHaveBeenCalledWith("milk");
-    });
-
-    expect(getIngredientInformation).toHaveBeenCalledWith(1077);
-
-    //confirm the correct object was sent to firestore
-    await waitFor(() => {
-      expect(saveIngredient).toHaveBeenCalledWith(
-        "test-user-123",
-        1077,
-        expect.objectContaining({
-          name: "milk",
-          amount: 2,
-          unit: "cartons",
-          image: "milk.png",
-          aisle: "Milk, Eggs, Other Dairy",
-        }),
-      );
-    });
-
-    //check inventory screen now displays the saved ingredient
-    expect(await screen.findByText("milk")).toBeTruthy();
-
-    expect(screen.getByText("2 cartons")).toBeTruthy();
-
-    expect(screen.getByText("You have (1)")).toBeTruthy();*/
   });
 });

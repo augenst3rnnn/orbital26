@@ -84,6 +84,7 @@ export default function ExploreRecipeScreen({ navigation }) {
           setModalVisible(true);
           console.log("Selected recipe: ", item.title);
         }}
+        testID={`recipe-card-${item.id}`}
       >
         <Image
           source={{ uri: item.image }}
@@ -132,6 +133,7 @@ export default function ExploreRecipeScreen({ navigation }) {
             onSubmitEditing={fetchRecipes}
             returnKeyType="search"
             className="flex-1 text-base mb-2 pl-2"
+            testID="recipe-search-input"
           />
         </View>
 

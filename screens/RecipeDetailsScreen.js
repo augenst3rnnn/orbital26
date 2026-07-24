@@ -33,7 +33,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [showMealPlannerOptions, setShowMealPlannerOptions] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
 
   useEffect(() => {
@@ -107,7 +107,11 @@ export default function RecipeDetailsScreen({ route, navigation }) {
         (recipe.instructions.length === 1 &&
           recipe.instructions[0] === "Loading instructions...");
 
-      if ((needsIngredients || needsInstructions) && recipe.id && recipe.id > 8) {
+      if (
+        (needsIngredients || needsInstructions) &&
+        recipe.id &&
+        recipe.id > 8
+      ) {
         setLoading(true);
         try {
           console.log("Fetching full details for recipe:", recipe.id);
@@ -182,7 +186,9 @@ export default function RecipeDetailsScreen({ route, navigation }) {
           summary: isMockRecipe ? currentRecipe.summary || "" : "",
           ingredients: isMockRecipe ? currentRecipe.ingredients || [] : [],
           instructions: isMockRecipe ? currentRecipe.instructions || [] : [],
-          readyInMinutes: isMockRecipe ? currentRecipe.readyInMinutes || 20 : 20,
+          readyInMinutes: isMockRecipe
+            ? currentRecipe.readyInMinutes || 20
+            : 20,
           servings: isMockRecipe ? currentRecipe.servings || 2 : 2,
           likes: isMockRecipe ? currentRecipe.likes || 0 : 0,
           isMock: isMockRecipe,
@@ -222,7 +228,10 @@ export default function RecipeDetailsScreen({ route, navigation }) {
 
     saveMealForDay(userId, selectedDate, mealType.toLowerCase(), mealRecipe)
       .then(() => {
-        Alert.alert("Success", `Added to ${mealType} on ${formatDate(selectedDate)}!`);
+        Alert.alert(
+          "Success",
+          `Added to ${mealType} on ${formatDate(selectedDate)}!`,
+        );
         setShowMealPlannerOptions(false);
       })
       .catch((error) => {
@@ -254,6 +263,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
           </Text>
 
           <TouchableOpacity
+            testID="faovurite-button"
             onPress={handleToggleFavorite}
             disabled={favoriteLoading}
             className="p-2"
@@ -353,8 +363,8 @@ export default function RecipeDetailsScreen({ route, navigation }) {
                 <Text className="text-sm font-semibold text-gray-600 mb-2 text-center">
                   Select date
                 </Text>
-                <ScrollView 
-                  horizontal 
+                <ScrollView
+                  horizontal
                   showsHorizontalScrollIndicator={false}
                   className="px-1"
                 >
@@ -378,8 +388,8 @@ export default function RecipeDetailsScreen({ route, navigation }) {
                             isSelected
                               ? "bg-yellow-300 shadow"
                               : isToday
-                              ? "bg-yellow-50 border-2 border-yellow-300"
-                              : "bg-gray-50 border border-gray-200"
+                                ? "bg-yellow-50 border-2 border-yellow-300"
+                                : "bg-gray-50 border border-gray-200"
                           }`}
                         >
                           <Text
