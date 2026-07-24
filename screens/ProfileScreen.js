@@ -11,9 +11,9 @@ import {
   RefreshControl,
   Switch,
 } from "react-native";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { signOut } from "firebase/auth";
 import { auth } from "../config/firebase";
 import {
@@ -30,16 +30,15 @@ import { cancelAllNotifications } from "../config/services/notificationsService"
 
 export default function ProfileScreen({ navigation }) {
   const { user } = useAuth();
+  const insets = useSafeAreaInsets(); // FIX: get exact status bar height
+
   const [profile, setProfile] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
   const [editingName, setEditingName] = useState(false);
   const [displayName, setDisplayName] = useState("");
-
-  // notification preferences
   const [notificationPrefs, setNotificationPrefs] = useState({
     mealReminders: true,
     groceryAlerts: true,
@@ -68,14 +67,11 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // fetch notification preferences
   const fetchNotificationPrefs = async () => {
     try {
       const userId = getCurrentUserId();
       const prefs = await getNotificationPreferences(userId);
-      if (prefs) {
-        setNotificationPrefs(prefs);
-      }
+      if (prefs) setNotificationPrefs(prefs);
     } catch (error) {
       console.error("Error fetching notification prefs:", error);
     } finally {
@@ -109,7 +105,6 @@ export default function ProfileScreen({ navigation }) {
       Alert.alert("Error", "Name cannot be empty");
       return;
     }
-
     try {
       setSaving(true);
       const userId = getCurrentUserId();
@@ -124,19 +119,14 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // Toggle notification preference
   const toggleNotificationPreference = async (key) => {
     const updated = { ...notificationPrefs, [key]: !notificationPrefs[key] };
     setNotificationPrefs(updated);
-
     try {
       const userId = getCurrentUserId();
       await setNotificationPreferences(userId, updated);
-
-      //if meal reminders are turned off, cancel all the scheduled notifications
       if (key === "mealReminders" && !updated.mealReminders) {
         await cancelAllNotifications();
-        console.log("Cancelled all scheduled notifications");
       }
     } catch (error) {
       console.error("Error updating notification preferences:", error);
@@ -162,48 +152,26 @@ export default function ProfileScreen({ navigation }) {
     ]);
   };
 
-  {
-    /*favourite recipes*/
-  }
-  const renderFavoriteItem = ({ item, index }) => (
+  const renderFavoriteItem = ({ item }) => (
     <TouchableOpacity
       className="bg-white rounded-2xl p-3 mb-3 shadow-sm border border-gray-100 flex-row items-center"
-      style={{
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
-        elevation: 2,
-      }}
       onPress={() => {
         navigation.navigate("RecipeDetails", {
-          recipe: {
-            id: item.id,
-            title: item.title,
-            image: item.image,
-          },
+          recipe: { id: item.id, title: item.title, image: item.image },
         });
       }}
       activeOpacity={0.7}
     >
-      {/* Recipe image*/}
-      <View className="relative">
-        <Image
-          source={
-            typeof item.image === "string"
-              ? { uri: item.image }
-              : item.image || require("../assets/icons/avatar.png")
-          }
-          style={{ width: 60, height: 60, borderRadius: 12 }}
-        />
-      </View>
-
-      {/*recipe info with date saved*/}
+      <Image
+        source={
+          typeof item.image === "string"
+            ? { uri: item.image }
+            : item.image || require("../assets/icons/avatar.png")
+        }
+        style={{ width: 60, height: 60, borderRadius: 12 }}
+      />
       <View className="flex-1 ml-3">
-        <Text
-          className="font-semibold text-gray-800 text-base"
-          numberOfLines={1}
-        >
+        <Text className="font-semibold text-gray-800 text-base" numberOfLines={1}>
           {item.title}
         </Text>
         <View className="flex-row items-center mt-1">
@@ -220,8 +188,6 @@ export default function ProfileScreen({ navigation }) {
           )}
         </View>
       </View>
-
-      {/*remove button */}
       <TouchableOpacity
         onPress={() => {
           Alert.alert(
@@ -252,14 +218,9 @@ export default function ProfileScreen({ navigation }) {
     </TouchableOpacity>
   );
 
-  {
-    /* default empty state for favourite recipe section*/
-  }
   const renderEmptyFavorites = () => (
     <View className="bg-gray-50 rounded-2xl p-10 items-center border border-gray-100 border-dashed">
-      <Text className="text-gray-400 font-semibold text-lg">
-        No favorites yet
-      </Text>
+      <Text className="text-gray-400 font-semibold text-lg">No favorites yet</Text>
       <Text className="text-gray-400 text-sm mt-1 text-center">
         Start saving recipes you love!
       </Text>
@@ -272,9 +233,6 @@ export default function ProfileScreen({ navigation }) {
     </View>
   );
 
-  {
-    /* loading state */
-  }
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
@@ -284,24 +242,23 @@ export default function ProfileScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: '#fef08a' }}>
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-gray-50"
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* Header with yellow background */}
+        {/* Yellow header */}
         <View className="bg-yellow-200 pt-8 pb-16 px-6">
           <Text className="text-2xl font-bold text-gray-800">Profile</Text>
           <Text className="text-gray-700 text-sm">Manage your account</Text>
         </View>
 
-        {/* profile card */}
+        {/* Profile card */}
         <View className="px-6 -mt-10">
           <View className="bg-white rounded-2xl shadow-sm p-6">
-            {/* Avatar */}
             <View className="items-center -mt-14">
               <View className="w-24 h-24 rounded-full bg-yellow-100 justify-center items-center border-4 border-white shadow-md">
                 <Image
@@ -315,7 +272,6 @@ export default function ProfileScreen({ navigation }) {
               <Text className="text-gray-500 text-sm">{user?.email}</Text>
             </View>
 
-            {/* Profile statistics (Favourites, Meal Plans) */}
             <View className="flex-row justify-around mt-4 pt-4 border-t border-gray-100">
               <View className="items-center">
                 <Text className="text-2xl font-bold text-gray-800">
@@ -325,9 +281,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View className="items-center">
                 <Text className="text-2xl font-bold text-gray-800">
-                  {profile?.mealPlans
-                    ? Object.keys(profile.mealPlans).length
-                    : 0}
+                  {profile?.mealPlans ? Object.keys(profile.mealPlans).length : 0}
                 </Text>
                 <Text className="text-xs text-gray-500 mt-1">Meal Plans</Text>
               </View>
@@ -393,7 +347,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Notification Preferences*/}
+        {/* Notifications */}
         <View className="px-6 mt-4">
           <View className="bg-white rounded-xl p-4 shadow-sm">
             <View className="flex-row items-center justify-between mb-3">
@@ -410,35 +364,27 @@ export default function ProfileScreen({ navigation }) {
                 </Text>
               )}
             </View>
-
             {notificationLoading ? (
               <ActivityIndicator size="small" color="#eab308" />
             ) : (
-              <>
-                {/* Meal Reminders */}
-                <View className="flex-row justify-between items-center py-2 border-b border-gray-100">
-                  <View>
-                    <Text className="text-gray-800 font-medium">
-                      Meal Reminders
-                    </Text>
-                    <Text className="text-xs text-gray-500">
-                      Get reminders on when to cook
-                    </Text>
-                  </View>
-                  <Switch
-                    value={notificationPrefs.mealReminders}
-                    onValueChange={() =>
-                      toggleNotificationPreference("mealReminders")
-                    }
-                    trackColor={{ false: "#d1d5db", true: "#eab308" }}
-                  />
+              <View className="flex-row justify-between items-center py-2 border-b border-gray-100">
+                <View>
+                  <Text className="text-gray-800 font-medium">Meal Reminders</Text>
+                  <Text className="text-xs text-gray-500">
+                    Get reminders on when to cook
+                  </Text>
                 </View>
-              </>
+                <Switch
+                  value={notificationPrefs.mealReminders}
+                  onValueChange={() => toggleNotificationPreference("mealReminders")}
+                  trackColor={{ false: "#d1d5db", true: "#eab308" }}
+                />
+              </View>
             )}
           </View>
         </View>
 
-        {/* Favorites Section */}
+        {/* Favorites */}
         <View className="px-6 mt-4 mb-4">
           <View className="flex-row justify-between items-center mb-3">
             <View className="flex-row items-center">
@@ -453,7 +399,6 @@ export default function ProfileScreen({ navigation }) {
               <Text className="text-xs text-gray-400">Tap to view</Text>
             )}
           </View>
-
           {favorites.length > 0 ? (
             <FlatList
               data={favorites}
@@ -467,7 +412,7 @@ export default function ProfileScreen({ navigation }) {
           )}
         </View>
 
-        {/*logout button*/}
+        {/* Logout */}
         <View className="px-6 mb-8">
           <TouchableOpacity
             onPress={handleLogout}
@@ -477,6 +422,6 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
