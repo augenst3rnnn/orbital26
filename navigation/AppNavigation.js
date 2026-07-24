@@ -147,7 +147,11 @@ export default function AppNavigation() {
           tabBarStyle: {
             paddingBottom: 8,
             paddingTop: 8,
-            height: 60,
+            height: 80,
+            /*backgroundColor: "#fbe8ff",
+            position: "absolute",
+            bottom: 25,
+            borderRadius: 20,*/
           },
           headerShown: false,
         })}

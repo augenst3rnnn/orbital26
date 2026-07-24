@@ -307,9 +307,12 @@ export default function InventoryScreen({ navigation }) {
               </Text>
 
               {filteredIngredients.map((ingredient) => (
-                <Pressable
+                <TouchableOpacity
                   key={ingredient.id}
-                  className="flex-row items-center justify-between bg-purple-50 rounded-2xl px-4 py-4 mb-3"
+                  className="flex-row items-center justify-between bg-purple-50 rounded-2xl px-4 py-4 mb-6"
+                  onPress={() => {
+                    handleOpenEditModal(ingredient);
+                  }}
                 >
                   <View>
                     <Text className="font-bold text-base">
@@ -321,7 +324,7 @@ export default function InventoryScreen({ navigation }) {
                   </View>
 
                   <Text className="text-purple-600 font-bold">Edit</Text>
-                </Pressable>
+                </TouchableOpacity>
               ))}
             </View>
           ) : (
