@@ -1,14 +1,12 @@
-
-
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    environment: 'node',
-    include: ['**/tests/UnitTests/**/*.test.js'],
+    environment: "node",
+    include: ["**/tests/**/*.test.{js,jsx}"],
     globals: true,
-    transform: {
-      '^.+\\.(js|jsx)$': 'babel-jest'
-    }
-  }
+    /*transform: {
+      "^.+\\.(js|jsx)$": "babel-jest",
+    },*/
+  },
 });

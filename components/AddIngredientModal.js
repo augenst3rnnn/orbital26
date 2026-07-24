@@ -47,7 +47,10 @@ export default function AddIngredientModal({
         <View className="absolute top-0 bottom-0 left-0 right-0 bg-black/30" />
 
         {/*white modal popup*/}
-        <View className="bg-white rounded-3xl p-6 w-[80%]">
+        <View
+          className="bg-white rounded-3xl p-6 w-[80%]"
+          testID="add-ingredient-modal"
+        >
           {/*close*/}
           <View className="items-end -mt-2">
             <TouchableOpacity onPress={onClose}>
@@ -71,6 +74,7 @@ export default function AddIngredientModal({
               value={name}
               onChangeText={setName}
               className="bg-purple-100 rounded-xl p-4 mb-6"
+              testID="ingredient-search-input"
             />
           )}
 
@@ -79,6 +83,7 @@ export default function AddIngredientModal({
             value={amount}
             onChangeText={setAmount}
             className="bg-purple-100 rounded-xl p-4 mb-6"
+            testID="ingredient-amount-input"
           />
 
           <TextInput
@@ -86,11 +91,13 @@ export default function AddIngredientModal({
             value={unit}
             onChangeText={setUnit}
             className="bg-purple-100 rounded-xl p-4 mb-6"
+            testID="ingredient-unit-input"
           />
 
           <TouchableOpacity
             onPress={handleSave}
             className="bg-purple-700 rounded-xl items-center mt-2 mx-20 p-4 mb-2"
+            testID="save-ingredient-button"
           >
             <Text className="text-white font-bold">Save</Text>
           </TouchableOpacity>
