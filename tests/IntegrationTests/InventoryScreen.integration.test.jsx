@@ -122,7 +122,7 @@ describe("InventoryScreen integration", () => {
     });*/
     const user = userEvent.setup();
 
-    render(<InventoryScreen navigation={navigation} />);
+    await render(<InventoryScreen navigation={navigation} />);
 
     //load user's inventory inside useEffect (async)
     await waitFor(() => {

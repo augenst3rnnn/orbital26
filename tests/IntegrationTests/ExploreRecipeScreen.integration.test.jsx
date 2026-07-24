@@ -72,7 +72,7 @@ describe("ExploreRecipeScreen integration", () => {
       missedIngredientCount: 1,
     };
 
-    searchRecipesByName.mockResolvedValue([recipeSearchResult]);
+    searchRecipesByName.mockResolvedValueOnce([recipeSearchResult]);
 
     const navigation = {
       goBack: jest.fn(),
@@ -81,7 +81,7 @@ describe("ExploreRecipeScreen integration", () => {
 
     const user = userEvent.setup();
 
-    render(<ExploreRecipeScreen navigation={navigation} />);
+    await render(<ExploreRecipeScreen navigation={navigation} />);
 
     await user.type(screen.getByTestId("recipe-search-input"), "pasta", {
       submitEditing: true,

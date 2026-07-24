@@ -263,7 +263,7 @@ export default function RecipeDetailsScreen({ route, navigation }) {
           </Text>
 
           <TouchableOpacity
-            testID="faovurite-button"
+            testID="favourite-button"
             onPress={handleToggleFavorite}
             disabled={favoriteLoading}
             className="p-2"
