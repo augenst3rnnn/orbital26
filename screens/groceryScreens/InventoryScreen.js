@@ -10,12 +10,7 @@ import {
   FlatList,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { mockRecipes } from "../../data/mockRecipes";
 import { useDebounce } from "../../config/hooks/useDebounce";
-import { mockInventory } from "../../data/mockInventory";
-import { mockMissingIngredients } from "../../data/mockMissingIngredients";
-import { mockGroceryList } from "../../data/mockGroceryList";
 import EditIngredientModal from "../../components/EditIngredientModal";
 import {
   getIngredientInformation,
@@ -24,7 +19,6 @@ import {
 import AddIngredientModal from "../../components/AddIngredientModal";
 import {
   saveIngredient,
-  getCurrentUserId,
   getIngredientInventory,
   deleteIngredient,
 } from "../../config/firestoreService";
@@ -469,6 +463,7 @@ export default function InventoryScreen({ navigation }) {
       <TouchableOpacity
         className="border-2 border-yellow-500 absolute bottom-20 right-10 w-16 h-16 rounded-full bg-yellow-400 shadow-lg flex items-center justify-center"
         onPress={() => setShowAddModal(true)}
+        testID="open-add-ingredient-modal"
       >
         <Text className="text-white text-3xl font-bold">+</Text>
       </TouchableOpacity>
