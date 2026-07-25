@@ -3,10 +3,11 @@ import { matchesDietaryPreferences } from "../dietaryFilters";
 import { mockRecipes } from "../../data/mockRecipes";
 import { getCachedData, setCachedData } from "./cacheService";
 
-const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
+//const SPOONACULAR_API_KEY = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
+const SPOONACULAR_API_KEY = process.env.EXPO_PUBLIC_SPOONACULAR_API_KEY;
 
 if (!SPOONACULAR_API_KEY) {
-  console.error("Spoonacular API key not found in app.json");
+  console.error("Spoonacular API key not found in Expo config");
 }
 
 export const searchRecipesByIngredients = async (
