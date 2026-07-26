@@ -7,11 +7,12 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "npm run test:unit",
     "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "test:integration": "jest --config jest.config.js",
-    "test:integration:watch": "jest --config jest.config.js --watch"
+    "test:integration:watch": "jest --config jest.config.js --watch",
+    "test:all": "npm run test:unit && npm run test:integration"
   },
   "dependencies": {
     "@babel/core": "^7.29.7",
