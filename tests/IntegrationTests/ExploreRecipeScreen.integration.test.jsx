@@ -106,4 +106,50 @@ describe("ExploreRecipeScreen integration", () => {
 
     expect(screen.getByText("2 available, 1 missing")).toBeTruthy();
   });
+
+  it("navigates to full recipe details", async () => {
+    const recipeSearchResult = {
+      id: 716429,
+      title: "Pasta with Garlic",
+      image: "https://example.com/pasta.jpg",
+      readyInMinutes: 30,
+      servings: 2,
+      summary: "A simple pasta recipe.",
+      usedIngredientCount: 2,
+      missedIngredientCount: 1,
+    };
+
+    searchRecipesByName.mockResolvedValueOnce([recipeSearchResult]);
+
+    const navigation = {
+      goBack: jest.fn(),
+      navigate: jest.fn(),
+    };
+
+    const user = userEvent.setup();
+
+    await render(<ExploreRecipeScreen navigation={navigation} />);
+
+    //user first searches recipes
+    await user.type(screen.getByTestId("recipe-search-input"), "pasta", {
+      submitEditing: true,
+    });
+
+    await screen.findByText("Pasta with Garlic");
+
+    //user clicks on recipe card
+    await user.press(screen.getByTestId("recipe-card-716429"));
+
+    //modal popup appears
+    expect(await screen.findByTestId("recipe-preview-modal")).toBeTruthy();
+
+    expect(screen.getByText("2 available, 1 missing")).toBeTruthy();
+
+    //press Read More
+    await user.press(screen.getByTestId("view-recipe-details-button"));
+
+    expect(navigation.navigate).toHaveBeenCalledWith("RecipeDetails", {
+      recipe: recipeSearchResult,
+    });
+  });
 });
