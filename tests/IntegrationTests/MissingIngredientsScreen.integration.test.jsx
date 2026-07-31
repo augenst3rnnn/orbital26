@@ -5,6 +5,8 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
+import { Alert } from "react-native";
+
 import GroceryScreen from "../../screens/groceryScreens/GroceryScreen";
 import MissingIngredientsScreen from "../../screens/groceryScreens/MissingIngredientsScreen";
 import FullIngredientsScreen from "../../screens/groceryScreens/FullIngredientsScreen";
@@ -136,7 +138,67 @@ describe("MissingIngredientsScreen integration", () => {
     });
   });
 
-  //it("adds missing ingredient to inventory", async () => {
+  it("adds missing ingredient to inventory", async () => {
+    const garlic = {
+      id: 11215,
+      name: "garlic",
+      amount: 2,
+      unit: "cloves",
+    };
+
+    const favRecipe = {
+      id: 716429,
+      image: "https://example.com/pasta.jpg",
+      title: "Pasta with Garlic",
+      extendedIngredients: [garlic],
+    };
+
+    getIngredientInventory.mockResolvedValue([]);
+    getGroceryList.mockResolvedValue([]);
+
+    updateIngredientStatus.mockResolvedValue({
+      ingredientInventory: [garlic],
+      groceryList: [],
+    });
+
+    jest.spyOn(Alert, "alert").mockImplementation((title, message, buttons) => {
+      buttons.find((button) => button.text === "Add").onPress();
+    });
+
+    const navigation = {
+      goBack: jest.fn(),
+      navigate: jest.fn(),
+    };
+
+    const route = {
+      params: {
+        recipe: favRecipe,
+      },
+    };
+
+    const user = userEvent.setup();
+
+    await render(
+      <FullIngredientsScreen navigation={navigation} route={route} />,
+    );
+
+    //initial inventory & grocery list fetching
+    expect(await screen.findByText("0 of 1 ingredients")).toBeTruthy();
+
+    await user.press(screen.getByTestId("ingredient-11215"));
+
+    await user.press(screen.getByTestId("status-have"));
+
+    await waitFor(() => {
+      expect(updateIngredientStatus).toHaveBeenCalledWith(
+        "test-user-123",
+        garlic,
+        "have",
+      );
+    });
+
+    expect(await screen.findByText("1 of 1 ingredients")).toBeTruthy();
+  });
 
   //it("adds missing ingredient to cart", async () => {}
 });
