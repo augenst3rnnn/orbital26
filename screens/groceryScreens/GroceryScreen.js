@@ -145,18 +145,21 @@ export default function GroceryScreen({ navigation }) {
       subtitle: "View your current inventory",
       image: require("../../assets/icons/purpleCart.png"),
       screen: "Inventory",
+      number: 1,
     },
     {
       title: "Missing for saved recipes",
       subtitle: `${missingCount} ingredients missing`,
       image: require("../../assets/icons/yellowCart.png"),
       screen: "recipeMissingIngredients",
+      number: 2,
     },
     {
       title: "My grocery list",
       subtitle: `${groceryCount} items added`,
       image: require("../../assets/icons/checklist.png"),
       screen: "groceryList",
+      number: 3,
     },
   ];
 
@@ -417,6 +420,7 @@ export default function GroceryScreen({ navigation }) {
               <View className="mt-2 gap-y-5 mb-10">
                 {groceryCards.map((card, index) => (
                   <TouchableOpacity
+                    testID={`nav-card-${card.number}`}
                     key={index}
                     onPress={() => navigation.navigate(card.screen)}
                     className="bg-purple-50 rounded-2xl p-5 flex-row items-center justify-between"

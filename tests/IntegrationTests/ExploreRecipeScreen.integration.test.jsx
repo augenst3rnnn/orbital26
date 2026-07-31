@@ -153,7 +153,6 @@ describe("ExploreRecipeScreen integration", () => {
     });
   });
 
-  //include expect call to getRecipeDetails when navigating to RDS?
   it("adds recipe to favourites from details screen", async () => {
     const recipeDetails = {
       id: 716429,

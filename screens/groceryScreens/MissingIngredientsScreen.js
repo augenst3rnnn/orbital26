@@ -75,6 +75,7 @@ export default function MissingIngredientsScreen({ navigation }) {
 
     return (
       <TouchableOpacity
+        testID={`favRecipeCard-${item.id}`}
         onPress={() => {
           setSelectedRecipe(item);
           navigation.navigate("recipeChecklist", {
