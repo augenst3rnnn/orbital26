@@ -272,6 +272,11 @@ export default function RecipeDetailsScreen({ route, navigation }) {
               <ActivityIndicator size="small" color="#eab308" />
             ) : (
               <Image
+                testID={
+                  isFavorite
+                    ? "favorite-heart-filled"
+                    : "favorite-heart-unfilled"
+                }
                 source={
                   isFavorite
                     ? require("../assets/icons/heart.png")

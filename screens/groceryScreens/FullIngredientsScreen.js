@@ -57,6 +57,7 @@ export default function FullIngredientsScreen({ navigation, route }) {
 
     return (
       <TouchableOpacity
+        testID={`ingredient-${item.id}`}
         className="flex-row items-center py-3"
         style={{
           opacity: anotherIngredientSelected ? 0.2 : 1,
@@ -294,6 +295,7 @@ export default function FullIngredientsScreen({ navigation, route }) {
         <View className="w-full flex-row items-center justify-between">
           <View className="flex-row items-center">
             <TouchableOpacity
+              testID="status-have"
               disabled={!selectedIngredient || isUpdating}
               onPress={() => confirmStatusChange("have")}
             >
